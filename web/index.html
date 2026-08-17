@@ -25,6 +25,8 @@
        for points and medals. */
     --cp-red:    #CE0E2D;
     --cp-red-lt: #DE2A40;
+    --cp-orange: #EE843C;
+    --cp-orange-dp: #D9601F;
     --cp-gold:   #FEB625;
     --ink:       #2B2B2B;
     --paper:     #F6F3F1;
@@ -60,8 +62,11 @@ const O = D.overview;
 // heading and highlight uses, so the whole page follows a single swap.
 const CP = {
   red: "#CE0E2D", redLt: "#DE2A40", gold: "#FEB625",
+  orange: "#EE843C", orangeDp: "#D9601F",
   ink: "#2B2B2B", tint: "#FFF0F0",
 };
+// The hero field is CP orange; accents on white stay red, because orange
+// text on white is too low-contrast to read at body size.
 CP.accent = CP.red;
 
 // Logos are inlined so the page stays one self-contained file to deploy.
@@ -142,7 +147,7 @@ function Hero() {
   const pct = Math.round((reachable / O.clips_with_intent) * 100);
   return (
     <header className="px-6 md:px-10 pt-8 md:pt-10 pb-10"
-            style={{ background: `linear-gradient(160deg,${CP.red} 0%,${CP.redLt} 100%)` }}>
+            style={{ background: `linear-gradient(160deg,${CP.orangeDp} 0%,${CP.orange} 100%)` }}>
       <div className="max-w-6xl mx-auto text-white">
         {/* Both marks sit on a white plate: the 7-Eleven cup is mostly white
             and would disappear against the red field on its own. */}
@@ -154,9 +159,9 @@ function Hero() {
           </div>
         </div>
 
-        <div className="mt-7 flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase"
-             style={{ color: CP.gold }}>
-          <span className="inline-block w-8 h-[2px]" style={{ background: CP.gold }} />
+        {/* White, not gold: gold sits too close to the orange field to read. */}
+        <div className="mt-7 flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase text-white/90">
+          <span className="inline-block w-8 h-[2px] bg-white/90" />
           เสียงพนักงานหน้าร้าน · TikTok
         </div>
 
@@ -164,11 +169,11 @@ function Hero() {
           พนักงาน 7-Eleven<br className="hidden md:block" /> พูดถึงงานตัวเองว่าอย่างไร
         </h1>
 
-        {/* White on red, not gold: gold body copy on this red fails contrast
-            at paragraph size. Gold stays for the eyebrow and the numbers. */}
+        {/* All white on the orange field. Gold would disappear into it, so the
+            headline number is emphasised by weight rather than by colour. */}
         <p className="mt-5 text-lg md:text-2xl max-w-3xl text-white/95">
           จาก {O.clips_with_intent} คลิปที่พูดถึงงาน มี{" "}
-          <b style={{ color: CP.gold }}>{reachable} คลิป ({pct}%)</b> ที่คน
+          <b className="text-white">{reachable} คลิป ({pct}%)</b> ที่คน
           ยังทำงานอยู่และยังเปลี่ยนใจได้ — อีก {high} คลิปคือคนที่ออกไปแล้ว
         </p>
 
@@ -179,8 +184,8 @@ function Hero() {
             [num(O.comments), "คอมเมนต์", "จัดหมวดครบทุกอัน"],
             [compact(O.views), "ยอดชม", "จำนวนครั้งที่ถูกเปิด"],
           ].map(([v, l, s]) => (
-            /* Solid white cards on the red field, the way the Figma screens
-               stack their panels - a translucent tile on this red muddies. */
+            /* Solid white cards on the brand field, the way the Figma screens
+               stack their panels - a translucent tile just muddies. */
             <div key={l} className="rounded-2xl px-4 py-4 md:py-5 bg-white shadow-sm">
               <div className="text-2xl md:text-4xl font-bold" style={{ color: CP.red }}>{v}</div>
               <div className="text-sm font-semibold mt-1 text-neutral-800">{l}</div>
