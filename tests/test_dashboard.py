@@ -298,6 +298,10 @@ def test_disagree_pct_counts_only_people_who_took_a_side():
     row = b.sentiment_by_theme(comments)[0]
     assert row["total"] == 3
     assert row["disagree_pct"] == 50.0
+    # Both sides are shown on the page, so they have to be halves of the same
+    # denominator - อื่นๆ excluded from each.
+    assert row["agree_pct"] == 50.0
+    assert row["agree_pct"] + row["disagree_pct"] == 100.0
 
 
 def test_top_comments_are_ranked_and_non_empty():

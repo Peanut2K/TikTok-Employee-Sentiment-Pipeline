@@ -74,6 +74,16 @@ const THEME_LABEL = {
 };
 const themeName = (t) => THEME_LABEL[t] || t;
 
+// 2025-06-20 -> 20 Jun 2025. Built from the parts rather than parsed as a
+// Date, so it cannot shift a day across a timezone, and month names are
+// spelled out because 06/07 is read differently in different countries.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const shortDate = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+  return m ? `${m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (iso || "");
+};
+
 const num = (n) => n.toLocaleString("th-TH");
 const compact = (n) =>
   n >= 1e6 ? (n / 1e6).toFixed(1) + "M" :
@@ -151,7 +161,7 @@ function Hero() {
 
         {/* The sample belongs next to the headline, not only in the footer. */}
         <p className="mt-5 text-sm md:text-base text-white/60">
-          จาก {O.clips_collected} คลิปของพนักงาน {O.accounts} คน · {O.collected_from} ถึง {O.collected_to} ·
+          จาก {O.clips_collected} คลิปของพนักงาน {O.accounts} คน · {shortDate(O.collected_from)} ถึง {shortDate(O.collected_to)} ·
           เป็นคนที่เลือกถ่ายคลิปเอง ไม่ใช่ตัวแทนพนักงานทั้งหมด
         </p>
 
@@ -209,8 +219,8 @@ function Summary() {
       n: "3",
       head: `เรื่อง${themeName(calmest.name)}คือปัญหาหลัก — (${calmest.agree_pct}%) เห็นตรงกัน`,
       body: `จาก ${num(calmest.agree + calmest.disagree)} คอมเมนต์ที่เลือกข้าง ` +
-            `มีเพียง ${calmest.disagree} คนที่แย้ง — เรื่องที่คนเห็นตรงกันขนาดนี้ ` +
-            `คือเรื่องที่แก้แล้วไม่มีใครค้าน`,
+            `มี ${num(calmest.agree)} คนเห็นด้วย และมีเพียง ${calmest.disagree} คนที่แย้ง ` +
+            `— เรื่องที่คนเห็นตรงกันขนาดนี้ คือเรื่องที่แก้แล้วไม่มีใครค้าน`,
       action: "จุดเริ่มที่ปลอดภัยที่สุดถ้าต้องเลือกทำก่อนหนึ่งเรื่อง",
     },
   ];
@@ -249,7 +259,7 @@ function Summary() {
         <div className="mt-3 grid md:grid-cols-3 gap-4 text-sm md:text-base text-neutral-700">
           <p>
             <b>{O.clips_collected} คลิป</b> จากพนักงาน {O.accounts} คน
-            ช่วง {O.collected_from} ถึง {O.collected_to}
+            ช่วง {shortDate(O.collected_from)} ถึง {shortDate(O.collected_to)}
           </p>
           <p>
             เป็นคนที่<b>เลือกจะถ่ายคลิป</b>เท่านั้น ไม่ใช่ตัวแทนพนักงานทั้งหมด
@@ -417,7 +427,7 @@ function Trend() {
           <p className="mt-4 text-sm md:text-base text-neutral-600 border-t border-neutral-100 pt-4">
             <span className="inline-block w-3 h-3 rounded-sm mr-2 align-middle"
                   style={{ border: `2px dashed ${CP.orange}` }} />
-            <b>{partial.period} ยังไม่จบไตรมาส</b> — เก็บข้อมูลถึง {O.collected_to} เท่านั้น
+            <b>{partial.period} ยังไม่จบไตรมาส</b> — เก็บข้อมูลถึง {shortDate(O.collected_to)} เท่านั้น
             แท่งสุดท้ายจึงเตี้ยกว่าความจริง ไม่ใช่สัญญาณว่าเรื่องนี้เบาลง
             ไตรมาสที่คนพูดมากที่สุดคือ <b>{peak.period} ({peak.clips} คลิป)</b> ซึ่งเป็นไตรมาสเต็มล่าสุด
           </p>
@@ -475,7 +485,7 @@ function Voices() {
                       style={{ background: tone.color + "1A", color: tone.color }}>
                   {tone.label}
                 </span>
-                <span className="text-neutral-400">{h.uploaded_at}</span>
+                <span className="text-neutral-400">{shortDate(h.uploaded_at)}</span>
               </div>
 
               <blockquote className="mt-4 text-base md:text-lg font-medium leading-relaxed flex-1">

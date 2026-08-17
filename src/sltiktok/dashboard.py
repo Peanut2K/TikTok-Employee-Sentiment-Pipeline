@@ -433,8 +433,11 @@ def sentiment_by_theme(comments):
             "disagree": disagree,
             "other": counts.get("อื่นๆ", 0),
             "total": total,
-            # Of the people who took a side, how many pushed back.
+            # Of the people who took a side, how many pushed back - and how
+            # many backed it. Both are carried because they read as different
+            # claims: "2.8% argued" is a caveat, "97.2% agreed" is a finding.
             "disagree_pct": round(disagree / max(agree + disagree, 1) * 100, 1),
+            "agree_pct": round(agree / max(agree + disagree, 1) * 100, 1),
         })
     rows.sort(key=lambda r: r["total"], reverse=True)
     return rows
