@@ -33,6 +33,32 @@ xdg-open web/index.html
 
 Opens straight from `file://`; no server, no build step.
 
+## Notebook
+
+`pipeline.ipynb` runs the same stages cell by cell, for when you want one step
+rather than the whole chain.
+
+```bash
+.venv/bin/pip install jupyterlab
+.venv/bin/jupyter lab pipeline.ipynb
+```
+
+Cell 0 holds every tunable (`Config`) — keywords, model, worker counts, how
+many highlights and phrases reach the page. Change a value, re-run that cell,
+then run the stage you care about.
+
+The two stages that cost money (Enrich/Apify, Analyze/Gemini) sit behind a
+`RUN = False` flag and print an estimate first, so *Run All* spends nothing
+until you flip one by hand.
+
+Clear outputs before committing — they bloat the diff:
+
+```bash
+.venv/bin/jupyter nbconvert --clear-output --inplace pipeline.ipynb
+```
+
+Regenerate the notebook itself with `.venv/bin/python tools/make_notebook.py`.
+
 ## Tests
 
 ```bash

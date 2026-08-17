@@ -12,3 +12,6 @@ filtered_100.json
 __pycache__/
 *.egg-info/
 .pytest_cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
