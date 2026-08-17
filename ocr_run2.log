@@ -1,0 +1,100 @@
+98 clips, 49 with no usable caption
+49 have a cover in the dataset (rest fall back to oembed)
+loading easyocr (th+en) - first run downloads models...
+Using CPU. Note: This module is much faster with a GPU.
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/ao/nn/quantized/dynamic/modules/rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/quantized/Quantizer.cpp:111.)
+  w_ih = torch.quantize_per_tensor(
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/cuda/__init__.py:188: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12090). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /__w/pytorch/pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [5/49] 7615237712202747157:   สิ่งที่ไมได้ไปต่อ พนง7-11
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [7/49] 7632349460936330514: ทางานเซเว่น ง่าย?
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [8/49] 7632214212508437768: pov เมือเพื่อนบอกทำงานเชเว่น สขายอยู่ในห้องแอร์
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [9/49] 7559559240793279751: เป็นพนักงานเซเว่นสบายยยย
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [11/49] 7646089057562365205: ก้าหลายอย่างมากิ อู้านะคนเก่อ
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [12/49] 7526715219746344210: เมือ เดดึกรอผลัดเช้ คนแร เทม 05"3433 c d e hi j
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [13/49] 7394350785779223816: 2800-71:00
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [14/49] 7484620774246976775: กะดิกเข้างาน22:00 ชฒกูเข้าใจแล้วอหหห จิต]อร3เนม ออกงกม07:00 แต่ต่อกะึง
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [15/49] 7518131512294870279: ความไนใจเด็กเซเว่น
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [16/49] 7423583945410841874: วี]3อ ผผล ดดึกทำไมไม่ทำละ งาน ก็ไมได้เยอะเวลาว่างเยอะแยะ ยืนหลับยังได้
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [17/49] 6774164554566864129: iย
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [19/49] 7610906174849879317: วd:00 ล้างเครืองกาแฟ อ1ะ00รับเสีมยนมปัง 02:00 ทว1ตnฺราน 02:30 รับเดิม 
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [21/49] 7588536952958405909: povเมือมีดนมมอบีวีบมีนี เป็มบงโบบ้ง me
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [22/49] 7538996211110628615: ยนเชานเขเวนสบายจะเขาย  ทำงานในห้องเอร์ me:
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [23/49] 7520575842888535303: ยืนเคลือา:บาย ทางานโนพ้องแอนเบx เวลาิพิณเวอะ งานใาเันัก ใโจทาอด วงานเธ
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [25/49] 7615626730170027271: 20:00
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [26/49] 7623985496372415765: ทำงาน7า ไีวันได้ทำอะไรข้าง
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [27/49] 7669490005601045767: cadd craoทhทรสาีดีซีนรีอาสวรชาเออาิทีวิเดีมฮรา 31=02aย คณะวระฑ์กกาาซ์ 
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [28/49] 7511383448867605778: =อ!  จากงานเซเวน ออกจากงานตอนอายุ30ป
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [30/49] 7634554531291942165: เกอง d พ3ยง
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [31/49] 7668066460215889173: sign off 2. ขายสินคาและบริการ ปรับปรงข็อมลฉุกเฉ็น  restart e
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [32/49] 7458854368528338194: ต้นทนชีวิดไม่มี เรียนจบปริญญาตรีได้เพราะcp all เปืนผู้ช่วยผู้จัดการร้า
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [34/49] 7533957300390874389: :เทำงานอยู่ห้องเอร์ สบายเนาะ0 จ้าจจเสบายมากกก
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [35/49] 7467825789711453448:  จุดแข็ง เป็นมูบ  pov ทำทุก me ยันรับ เนับเงิน eal เซงคาแฟ อี๋วาต
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [36/49] 7648509945859673351: :เหลืออีก1นาที จะเลิกงาน
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [37/49] 7650984065046203669: ทะเป็นพนักงานเฮเวนจะไปเหนือยอะไร .eau
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [39/49] 7230859188669336837: หลายคนอาจคิดว่าพนักงาน ยืนแค่เครือง no!!lจ้  ทำทุกอย่างในร้านนะจะ ใจอย
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [40/49] 7407922363259456776: เซเวสาบดสสนบแสตมบนานแลว ยังไม่พอ ยังต้องวิ่งวนติด สติ๊กเกอร์ให้อีก
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [46/49] 7273148413825371398: ดีซี แสน2 มมว x กะบ่าย3คน ทย|ต
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [48/49] 7393007040962088193: เลิกกะบ่าย22:00 พน.กะเช้าเข้างาน07:00 ตาย
+
+42/49 clips yielded text -> /home/sapon/Desktop/Projects/sl-tiktok/out/ocr_text.json

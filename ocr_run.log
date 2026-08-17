@@ -1,0 +1,151 @@
+98 clips, 49 with no usable caption
+49 have a cover in the dataset (rest fall back to oembed)
+loading easyocr (th+en) - first run downloads models...
+Using CPU. Note: This module is much faster with a GPU.
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/ao/nn/quantized/dynamic/modules/rnn.py:162: UserWarning: torch.quantize_per_tensor, torch.quantize_per_channel and other quantized tensor creation functions that produce tensors with dtype torch.quint8, torch.qint8, and torch.qint32 are deprecated and will be removed in a future PyTorch release. Please see https://github.com/pytorch/pytorch/issues/184982 for more information. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/quantized/Quantizer.cpp:111.)
+  w_ih = torch.quantize_per_tensor(
+  [1/49] 7650095837917482260 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7650095837917482260.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/cuda/__init__.py:188: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12090). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /__w/pytorch/pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [2/49] 7485005226362080520: ทำมัยถึงตัดสินใจลาออกนะหรอ๓ les
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [3/49] 7420452193867779346: ขอบคุณประสบการณ์การ ทำงาน711 ลาออกครั้งที่1 ประสบการณ์ ระยะเวลา3 ปี 8 
+  [4/49] 7613671144884833554 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7613671144884833554.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [5/49] 7615237712202747157 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7615237712202747157.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [6/49] 7497612963247967495 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7497612963247967495.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [7/49] 7632349460936330514 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7632349460936330514.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [8/49] 7632214212508437768 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7632214212508437768.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [9/49] 7559559240793279751 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7559559240793279751.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [11/49] 7646089057562365205 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7646089057562365205.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [12/49] 7526715219746344210 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7526715219746344210.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [13/49] 7394350785779223816 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7394350785779223816.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [14/49] 7484620774246976775 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7484620774246976775.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [15/49] 7518131512294870279 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7518131512294870279.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [16/49] 7423583945410841874 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7423583945410841874.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [17/49] 6774164554566864129 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/6774164554566864129.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [18/49] 7322343226508135685 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7322343226508135685.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [19/49] 7610906174849879317 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7610906174849879317.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [20/49] 7140329627741867291:  ทำงานอยู่ผลัดดึก สบายใจมาก ไม่ต้องวุ่นวายกับใคร ทำงาน  ทำหน้าทีของเรา
+  [21/49] 7588536952958405909 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7588536952958405909.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [22/49] 7538996211110628615 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7538996211110628615.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [23/49] 7520575842888535303 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7520575842888535303.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [24/49] 7423220254601481493: iiiiiiii ai เซลลี40ที่รักอยู่ดูกลมา3ปี .(!6)',ป|; สk wu เพชเาาา ตร. กเ
+  [25/49] 7615626730170027271 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7615626730170027271.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [26/49] 7623985496372415765 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7623985496372415765.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [27/49] 7669490005601045767 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7669490005601045767.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [28/49] 7511383448867605778 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7511383448867605778.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [29/49] 7495952678305025287:  อาย30 เป็นผจก.เซเว่น(sbp) เงินเดือน20,000+++ โบนัสไม่มี a . q .  สวัส
+  [30/49] 7634554531291942165 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7634554531291942165.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [31/49] 7668066460215889173 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7668066460215889173.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [32/49] 7458854368528338194 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7458854368528338194.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [33/49] 7653084392146898196 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7653084392146898196.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [34/49] 7533957300390874389 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7533957300390874389.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [35/49] 7467825789711453448 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7467825789711453448.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [36/49] 7648509945859673351 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7648509945859673351.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [37/49] 7650984065046203669 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7650984065046203669.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [38/49] 7626137759417158920: <6` fale anal ตี๋ <&, tpot ไs, ไม้กูลงปุ้บเสียงประตูเปิดปับ aaon] snar
+  [39/49] 7230859188669336837 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7230859188669336837.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+  [40/49] 7407922363259456776 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7407922363259456776.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [41/49] 7314290388427459846: o เมือเราเข้ากะดึกมา1 เดือน me8
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [43/49] 7512657392111324423: เลิกงาน 22.00 ของลง 21.59
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [44/49] 7356071546567413008: w  ในที่สุดวันนีก็มาถึง วันทีตัดสินใจ(ลาออก) ขอบคุณเพือนร่วมงานูทุกคน 
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [45/49] 7523638894064127240: คุบกับพนนเซเวนได้อะไรนะเหรอ8 ไมได้อะไรแถมไม่มีเวลาให้ด้วย ว00## จุ(0 อ
+  [46/49] 7273148413825371398 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7273148413825371398.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [47/49] 7483573886349593874: pov: สึ่งทีฬนน7เปต้องเจอ เอาชาไทยแก้วนึงคะ
+  [48/49] 7393007040962088193 FAILED: Could not find a backend to open `/home/sapon/Desktop/Projects/sl-tiktok/out/covers/7393007040962088193.jpg`` with iomode `r`.
+Based on the extension, the following plugins might add capable backends:
+  pyav:  pip install imageio[pyav]
+/home/sapon/Desktop/Projects/sl-tiktok/.venv/lib/python3.13/site-packages/torch/utils/data/dataloader.py:759: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+  [49/49] 7543300739083406600: มุมนี้ . . วี'ต mi คนเดียวทำ100หน้าที่ m ต.. จัดr ผลัดบ่าย ไม่รวมเคาน์
+
+12/49 clips yielded text -> /home/sapon/Desktop/Projects/sl-tiktok/out/ocr_text.json

@@ -1,0 +1,9 @@
+.venv/
+tiktok_state.json
+client_secret.json
+aiwriteupload-*.json
+accounts.json
+videos/
+out/
+filtered_100.json
+.env
