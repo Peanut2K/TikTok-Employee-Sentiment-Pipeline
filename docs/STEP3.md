@@ -1,8 +1,13 @@
 # Step 3 — Apify: video metadata + comments
 
-**Done.** 98 of the 100 curated clips have metadata and comments; the other two
-are gone from TikTok (one deleted, one `Post not found or private`) — not
-scrape failures. Spend was $6.36 of the $29 account cap.
+**Done.** 99 of the 100 curated clips have metadata and comments; the missing
+one is gone from TikTok (`Post not found or private`), not a scrape failure.
+Spend was $6.36 of the $29 account cap. (Step 4 analyses 98 of those 99 — one
+clip's mp4 could not be downloaded. Different number, different stage.)
+
+Comments were pulled with `--comments-from-seed`: the profile actor was down,
+and the sheet already carries one `video_url` per account, so the feed walk
+was skipped entirely.
 
 Scope is the **100 clips listed in the sheet**, not the accounts' full feeds.
 

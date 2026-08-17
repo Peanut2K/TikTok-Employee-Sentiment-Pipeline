@@ -39,11 +39,26 @@ class Config:
     headless: bool = True
 
     # --- enrich: how much to pull from Apify ----------------------------
+    # The stage has two paths and they use different fields.
+    #
+    #   full run  (default)          walks each account's feed, then filters
+    #   --comments-from-seed         skips the feed; takes the video_url the
+    #                                sheet already carries, one clip per account
+    #
+    # The 99 clips behind the current dashboard came the second way: the
+    # profile actor was down platform-wide, and the sheet already had a clip
+    # per account. So videos_per_profile and profile_batch did nothing in that
+    # run - they apply when the profile scraper is used.
+
+    # Newest N clips per account, and how many accounts per actor run.
+    # Full run only.
     videos_per_profile: int = _enrich.VIDEOS_PER_PROFILE
-    comments_per_video: int = _enrich.COMMENTS_PER_VIDEO
-    # Worst case ~$28, under the account's $29 cap. Raise only with the cap.
-    max_videos_to_comment: int = _enrich.MAX_VIDEOS_TO_COMMENT
     profile_batch: int = _enrich.PROFILE_BATCH
+
+    # Both paths. Comments are ~95% of the bill, so max_videos_to_comment is
+    # the real budget lever; worst case ~$28 against the account's $29 cap.
+    comments_per_video: int = _enrich.COMMENTS_PER_VIDEO
+    max_videos_to_comment: int = _enrich.MAX_VIDEOS_TO_COMMENT
 
     # --- analyze: Gemini ------------------------------------------------
     model: str = _analyze.MODEL
@@ -92,9 +107,9 @@ class Config:
         return "\n".join([
             f"discover   {len(self.keywords)} keywords, target "
             f"{self.target_accounts} accounts, {self.scrolls_per_keyword} scrolls",
-            f"enrich     {self.videos_per_profile} videos/profile, "
-            f"{self.comments_per_video} comments/video, "
-            f"cap {self.max_videos_to_comment} videos",
+            f"enrich     {self.comments_per_video} comments/video, "
+            f"cap {self.max_videos_to_comment} videos"
+            f"  (full run only: {self.videos_per_profile} videos/profile)",
             f"analyze    {self.model}, batch {self.comment_batch}, "
             f"workers {self.clip_workers} clip / {self.comment_workers} comment",
             f"ocr        {'+'.join(self.ocr_langs)}, "
