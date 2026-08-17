@@ -443,6 +443,15 @@ function Trend() {
 
 const PER_PAGE = 12;
 
+// Link to TikTok exactly as the sheet recorded the URL, with nothing appended.
+//
+// is_from_webapp=1&sender_device=pc was tried here - the params TikTok's own
+// share sheet adds - on the theory that a cold deep link looks synthetic and
+// trips their bot check. It made the player refuse to start: the page loads,
+// the poster frame and the like count appear, and the video never plays until
+// the query string is removed and the page reloaded. Fetching the URL only
+// proves the HTML came back; it says nothing about whether the player runs.
+
 function Voices() {
   const [bucket, setBucket] = useState("all");
   const [page, setPage] = useState(0);
