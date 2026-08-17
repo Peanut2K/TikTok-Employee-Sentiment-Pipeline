@@ -124,7 +124,14 @@ def overview(clips, comments):
                 themes[t] += 1
 
     intents = Counter(c["intent_level"] for c in real)
+
+    # The window the sample actually covers. Stated on the page so a reader
+    # is never left to assume the data runs up to the day they open it.
+    dates = sorted(c["uploaded_at"][:10] for c in clips if c.get("uploaded_at"))
+
     return {
+        "collected_from": dates[0] if dates else "",
+        "collected_to": dates[-1] if dates else "",
         "clips_collected": len(clips),
         "clips_analyzed": len(real),
         "clips_with_intent": len(counted),
@@ -161,6 +168,14 @@ def trend(clips):
         row["views"] += c.get("views") or 0
         row["likes"] += c.get("likes") or 0
 
+    # The newest clip is where collection stopped, not where posting stopped.
+    # If that lands mid-quarter the final bar covers a shorter window than the
+    # ones beside it, and a reader compares them as equals - a drop that only
+    # means "we stopped looking" reads as "the problem went away". Flag it so
+    # the page can draw it as incomplete.
+    newest = max(c["uploaded_at"] for c in dated)[:10]
+    cut_y, cut_q = quarter(newest)
+
     first, last = min(by_q), max(by_q)
     out = []
     y, q = first
@@ -169,7 +184,8 @@ def trend(clips):
         # 28 quarters of "2025Q1" overlap on any projector, so the axis shows
         # the year once at Q1 and blanks the rest.
         out.append({"period": f"{y}Q{q}", "axis": str(y) if q == 1 else "",
-                    "year": y, "quarter": q, **row})
+                    "year": y, "quarter": q,
+                    "partial": (y, q) == (cut_y, cut_q), **row})
         y, q = (y + 1, 1) if q == 4 else (y, q + 1)
     return out
 

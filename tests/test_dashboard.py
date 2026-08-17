@@ -77,6 +77,36 @@ def test_trend_has_no_missing_quarters():
     assert [r["clips"] for r in b.trend(clips)] == [1, 0, 0, 0, 1]
 
 
+def test_only_the_last_quarter_is_marked_partial():
+    """The final bar covers a shorter window than the ones beside it.
+
+    Collection stops on the day it stops, mid-quarter. Drawn as an equal bar
+    the shortfall reads as "the problem is going away" when it only means
+    "we stopped looking", so the page needs to know which bar is incomplete.
+    """
+    clips = [clip(1, uploaded_at="2025-01-05T00:00:00.000Z"),
+             clip(2, uploaded_at="2025-04-05T00:00:00.000Z"),
+             clip(3, uploaded_at="2025-07-05T00:00:00.000Z")]
+    rows = b.trend(clips)
+    assert [r["partial"] for r in rows] == [False, False, True]
+
+
+def test_gap_quarters_are_not_marked_partial():
+    """Only the quarter collection stopped in is incomplete.
+
+    An empty quarter in the middle is a real zero - nobody posted - and
+    hollowing it out would excuse a gap that the data genuinely shows.
+    """
+    clips = [clip(1, uploaded_at="2024-01-05T00:00:00.000Z"),
+             clip(2, uploaded_at="2024-07-05T00:00:00.000Z")]
+    rows = b.trend(clips)
+    assert [(r["period"], r["clips"], r["partial"]) for r in rows] == [
+        ("2024Q1", 1, False),
+        ("2024Q2", 0, False),   # a real gap, drawn as a real zero
+        ("2024Q3", 1, True),    # where collection stopped
+    ]
+
+
 def test_highlights_skip_clips_with_nothing_to_show():
     clips = [clip(1, views=999, notable_quote=""),
              clip(2, views=10),
