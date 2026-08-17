@@ -56,7 +56,7 @@ const CP = { orange: "#EE843C", gold: "#FFBF3C", ink: "#2B2B2B" };
 
 // The only place colour carries meaning rather than brand: severity.
 const INTENT = {
-  low:    { color: "#4B9B6E", label: "ระบายความเหนื่อย",  sub: "ยังไม่คิดจะไป" },
+  low:    { color: "#4B9B6E", label: "เล่าเรื่องงาน",     sub: "ยังไม่คิดจะไป" },
   medium: { color: "#E0A020", label: "เริ่มลังเล",        sub: "กำลังมองทางเลือก" },
   high:   { color: "#C2413A", label: "ตัดสินใจแล้ว",      sub: "ลาออกแล้ว / กำลังจะไป" },
 };
@@ -129,7 +129,7 @@ function Hero() {
         </h1>
 
         <p className="mt-5 text-lg md:text-2xl max-w-3xl" style={{ color: CP.gold }}>
-          จาก {O.clips_with_intent} คลิปที่พูดถึงงานโดยตรง มี <b>{reachable} คลิป ({pct}%)</b> ที่คน
+          จาก {O.clips_with_intent} คลิปที่พูดถึงงาน มี <b>{reachable} คลิป ({pct}%)</b> ที่คน
           ยังทำงานอยู่และยังเปลี่ยนใจได้ — อีก {high} คลิปคือคนที่ออกไปแล้ว
         </p>
 
@@ -193,9 +193,9 @@ function Summary() {
     {
       n: "1",
       head: `คนที่ยังอยู่และยังเปลี่ยนใจได้ มี ${reachable} คน`,
-      body: `${low} คลิปเป็นการบ่นโดยยังทำงานอยู่ อีก ${mid} คลิปเริ่มมองทางอื่น ` +
-            `ขณะที่ ${high} คลิปคือคนที่ออกไปแล้ว — กลุ่มหลังนี้แก้ไม่ทันแล้ว ` +
-            `สิ่งที่ยังทำได้คือกลุ่มแรก ซึ่งเป็นกลุ่มที่ใหญ่ที่สุด`,
+      body: `${low} คลิปยังทำงานอยู่ตอนถ่าย — ตั้งแต่เล่าวันทำงานเฉยๆ ไปจนถึงบ่นว่าเหนื่อย ` +
+            `อีก ${mid} คลิปเริ่มมองทางอื่น ขณะที่ ${high} คลิปคือคนที่ออกไปแล้ว ` +
+            `— กลุ่มหลังนี้แก้ไม่ทันแล้ว สิ่งที่ยังทำได้คือกลุ่มแรก ซึ่งเป็นกลุ่มที่ใหญ่ที่สุด`,
       action: "โฟกัสที่คนยังอยู่ ไม่ใช่ทำ exit interview เพิ่ม",
     },
     {
@@ -218,7 +218,7 @@ function Summary() {
   return (
     <Section id="summary" eyebrow="สรุปสำหรับผู้บริหาร"
       title="สามเรื่องที่ต้องรู้"
-      lead={`อ่านจาก ${O.clips_with_intent} คลิปที่พูดถึงงานโดยตรง และ ${num(O.comments)} คอมเมนต์ใต้คลิปเหล่านั้น`}>
+      lead={`อ่านจาก ${O.clips_with_intent} คลิปที่พูดถึงงาน และ ${num(O.comments)} คอมเมนต์ใต้คลิปเหล่านั้น`}>
       <div className="grid gap-4">
         {findings.map((f) => (
           <Card key={f.n} className="p-5 md:p-6">
@@ -273,9 +273,9 @@ function IntentFunnel() {
 
   return (
     <Section id="intent" eyebrow="ระดับความตั้งใจ"
-      title="คนบ่น กับ คนที่ไปแล้ว ไม่ใช่กลุ่มเดียวกัน"
-      lead={`แบ่งตามสิ่งที่คนพูดในคลิป ${O.clips_with_intent} คลิปที่พูดถึงงานโดยตรง` +
-            ` (อีก ${O.clips_excluded} คลิปไม่เกี่ยวกับงาน จึงไม่นับ)`}>
+      title="คนที่ยังอยู่ กับ คนที่ไปแล้ว ไม่ใช่กลุ่มเดียวกัน"
+      lead={`แบ่งตามสิ่งที่คนพูดในคลิปทั้ง ${O.clips_with_intent} คลิปที่พูดถึงงาน` +
+            " — ตั้งแต่เล่าวันทำงานเฉยๆ ไปจนถึงบอกว่าลาออกแล้ว"}>
       <div className="grid gap-4">
         {rows.map((r) => (
           <Card key={r.bucket} className="p-5 md:p-6">
@@ -713,7 +713,7 @@ function Footer() {
         </p>
         <p className="text-neutral-400">
           คลิปทั้งหมด {O.clips_collected} · วิเคราะห์สำเร็จ {O.clips_analyzed} ·
-          พูดถึงงานโดยตรง {O.clips_with_intent} · คอมเมนต์ {num(O.comments)}
+          พูดถึงงาน {O.clips_with_intent} · คอมเมนต์ {num(O.comments)}
         </p>
       </div>
     </footer>

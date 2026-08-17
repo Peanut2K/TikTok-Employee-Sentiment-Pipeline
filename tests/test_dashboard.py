@@ -30,9 +30,9 @@ def clip(row, intent="บ่น", **kw):
 
 def test_every_pipeline_intent_has_a_bucket():
     """A new label added upstream must not silently vanish from the funnel."""
-    known = set(b.INTENT_BUCKETS) | {b.EXCLUDED_INTENT}
     seen = {c["intent_level"] for c in b.load()["clips"] if c.get("intent_level")}
-    assert seen <= known, f"unmapped intent labels: {seen - known}"
+    assert seen <= set(b.INTENT_BUCKETS), \
+        f"unmapped intent labels: {seen - set(b.INTENT_BUCKETS)}"
 
 
 def test_clip_counts_reconcile():
@@ -108,11 +108,21 @@ def test_gap_quarters_are_not_marked_partial():
 
 
 def test_highlights_skip_clips_with_nothing_to_show():
-    clips = [clip(1, views=999, notable_quote=""),
-             clip(2, views=10),
-             clip(3, intent="ไม่เกี่ยว", views=500)]
+    """A quote is what a card shows; without one there is nothing to put up."""
+    clips = [clip(1, views=999, notable_quote=""), clip(2, views=10)]
     got = b.highlights(clips)
     assert [h["id"] for h in got] == ["v2"]
+
+
+def test_highlights_keep_clips_that_never_mention_quitting():
+    """The loudest clip in the real set carries ไม่เกี่ยว.
+
+    715K views on the health risks of shift work, tagged workload and
+    ตารางกะ. Filtering the label out of highlights silently discarded the
+    best-performing evidence for the report's main finding.
+    """
+    clips = [clip(1, intent="ไม่เกี่ยว", views=500), clip(2, views=10)]
+    assert [h["id"] for h in b.highlights(clips)] == ["v1", "v2"]
 
 
 def test_short_quote_gets_its_sentence_back():
@@ -161,12 +171,29 @@ def test_highlights_are_ordered_by_reach():
     assert [h["views"] for h in b.highlights(clips)] == [900, 50, 10]
 
 
-def test_excluded_intent_stays_out_of_themes():
+def test_no_intent_label_is_dropped_on_topic():
+    """ไม่เกี่ยว means "not about quitting", not "not about the job".
+
+    All 8 clips carrying it are still 7-Eleven workplace content - a shift
+    walkthrough, a promotion, the health risks of night work - and several
+    carry workload themes. Dropping them lost the most-watched clip in the
+    set, so they count with the rest.
+    """
     clips = [clip(1, themes=["ค่าแรง"]),
              clip(2, intent="ไม่เกี่ยว", themes=["ค่าแรง"])]
     o = b.overview(clips, [])
-    assert o["themes"] == [{"name": "ค่าแรง", "value": 1}]
-    assert o["clips_excluded"] == 1
+    assert o["themes"] == [{"name": "ค่าแรง", "value": 2}]
+    assert o["clips_with_intent"] == 2
+    assert o["clips_excluded"] == 0
+
+
+def test_labels_sharing_a_bucket_produce_one_funnel_row():
+    """บ่น and ไม่เกี่ยว both sit in low; the funnel must show one bar."""
+    clips = [clip(1, intent="บ่น"), clip(2, intent="ไม่เกี่ยว"),
+             clip(3, intent="ลาออกแล้ว")]
+    rows = b.overview(clips, [])["intents"]
+    assert [r["bucket"] for r in rows] == ["low", "medium", "high"]
+    assert [r["value"] for r in rows] == [2, 0, 1]
 
 
 def test_phrases_are_multi_word_and_meaningful():

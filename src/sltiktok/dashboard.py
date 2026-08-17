@@ -23,14 +23,30 @@ SRC = paths.DASHBOARD
 DEST = paths.WEB_DATA
 
 # The story asks for three intent levels; the pipeline emits four labels.
-# They map one-to-one, with ไม่เกี่ยว excluded from the funnel but still
-# counted in the collected total so the numbers reconcile with step 4.
+#
+# ไม่เกี่ยว is a label about resignation intent, not about topic: it means the
+# clip never says quit / thinking of quitting. Reading all 8 of them, every one
+# is still 7-Eleven workplace content - a day in the shift, a promotion, the
+# health risks of nights - and several carry workload and ตารางกะ themes. The
+# model had nowhere to put "talks about the job without wanting to leave", so
+# they fall in with the ones voicing the job's strain rather than being dropped.
 INTENT_BUCKETS = {
     "บ่น": "low",
+    "ไม่เกี่ยว": "low",
     "คิดจะลาออก": "medium",
     "ลาออกแล้ว": "high",
 }
-EXCLUDED_INTENT = "ไม่เกี่ยว"
+# Nothing is excluded on topic now; a clip the model could not read at all is
+# already kept out by analyzed(), which needs an intent_level to be present.
+
+# One name per bucket, since a bucket can hold more than one model label. The
+# low bucket now covers both venting and simply describing the job, so it is
+# named for the whole group rather than for บ่น alone.
+BUCKET_LABEL = {
+    "low": "เล่าเรื่องงาน",
+    "medium": "คิดจะลาออก",
+    "high": "ลาออกแล้ว",
+}
 
 HIGHLIGHT_COUNT = 12
 PHRASE_COUNT = 40
@@ -113,7 +129,8 @@ def analyzed(clips):
 
 def overview(clips, comments):
     real = analyzed(clips)
-    counted = [c for c in real if c["intent_level"] != EXCLUDED_INTENT]
+    # Every analysed clip is about the job, so every one of them counts.
+    counted = real
 
     # อื่นๆ is the model's catch-all, not a problem anyone can act on. It
     # would sit third in the chart and tell an executive nothing.
@@ -135,7 +152,9 @@ def overview(clips, comments):
         "clips_collected": len(clips),
         "clips_analyzed": len(real),
         "clips_with_intent": len(counted),
-        "clips_excluded": intents.get(EXCLUDED_INTENT, 0),
+        # Kept at zero rather than dropped: the page still reads the field, and
+        # the honest answer now is that nothing was set aside as off-topic.
+        "clips_excluded": 0,
         "comments": len(comments),
         # One clip per account in this dataset, but count distinctly anyway -
         # a future run with two clips from one person must not inflate this.
@@ -144,9 +163,14 @@ def overview(clips, comments):
         "likes": sum(c.get("likes") or 0 for c in clips),
         "shares": sum(c.get("shares") or 0 for c in clips),
         "themes": [{"name": n, "value": v} for n, v in themes.most_common()],
-        "intents": [{"bucket": bucket, "label": label,
-                     "value": intents.get(label, 0)}
-                    for label, bucket in INTENT_BUCKETS.items()],
+        # Several labels can share a bucket, so sum into the bucket rather than
+        # emitting a row per label - two labels map to low and the funnel must
+        # show one bar, not two.
+        "intents": [{"bucket": bucket, "label": BUCKET_LABEL[bucket],
+                     "value": sum(intents.get(lbl, 0)
+                                  for lbl, b in INTENT_BUCKETS.items()
+                                  if b == bucket)}
+                    for bucket in ("low", "medium", "high")],
     }
 
 
@@ -232,8 +256,7 @@ def highlights(clips, limit=HIGHLIGHT_COUNT):
     A clip without a quote has nothing to show on a card, so it is skipped
     even if it out-performed the ones that made the list.
     """
-    pool = [c for c in analyzed(clips)
-            if c["intent_level"] != EXCLUDED_INTENT and c.get("notable_quote")]
+    pool = [c for c in analyzed(clips) if c.get("notable_quote")]
     pool.sort(key=lambda c: c.get("views") or 0, reverse=True)
     return [{
         "id": c["video_id"],
