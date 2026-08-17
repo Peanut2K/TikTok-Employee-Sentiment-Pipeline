@@ -39,8 +39,8 @@ cfg = Config(
     headless=True,
 
     # --- enrich (Apify) --------------------------------------------
-    # videos_per_profile applies only to a full run. The current data came
-    # from --comments-from-seed, which takes the clip the sheet already names.
+    # videos_per_profile applies only under --scrape-profiles. The default
+    # path takes the one clip per account that the sheet already names.
     videos_per_profile=30,
     comments_per_video=100,
     max_videos_to_comment=500,
@@ -119,10 +119,13 @@ md("""
 Apify runs from its own IPs and returns what the search page will not: views,
 likes, shares, `uploaded_at`, and the comment threads.
 
-Two paths: a **full run** walks each account's feed (`videos_per_profile`
-clips each, then filters), while **`--comments-from-seed`** skips the feed and
-uses the one clip per account the sheet already names. The current 99 clips
-came the second way — the profile actor was down platform-wide during the run.
+Scope is **one clip per account** — the `video_url` the sheet already names.
+That is the default, and it scrapes no feeds at all, so the videos half of the
+bill is $0.
+
+`--scrape-profiles` opts into the other shape: walk each creator's recent feed
+(`videos_per_profile` clips each, then filter). Several clips per account and a
+much bigger bill — roughly 15× on the same account list.
 
 **This spends money.** Estimate first; the cell below only prints.
 """)

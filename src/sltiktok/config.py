@@ -39,19 +39,15 @@ class Config:
     headless: bool = True
 
     # --- enrich: how much to pull from Apify ----------------------------
-    # The stage has two paths and they use different fields.
+    # The stage has two paths and they read different fields.
     #
-    #   full run  (default)          walks each account's feed, then filters
-    #   --comments-from-seed         skips the feed; takes the video_url the
-    #                                sheet already carries, one clip per account
+    #   default              one clip per account, the video_url the sheet
+    #                        names. This is the scope of the study.
+    #   --scrape-profiles    walks each creator's feed instead, several clips
+    #                        per account. Opt-in: different dataset, bigger bill.
     #
-    # The 99 clips behind the current dashboard came the second way: the
-    # profile actor was down platform-wide, and the sheet already had a clip
-    # per account. So videos_per_profile and profile_batch did nothing in that
-    # run - they apply when the profile scraper is used.
-
-    # Newest N clips per account, and how many accounts per actor run.
-    # Full run only.
+    # Newest N clips per account, and accounts per actor run. Read only under
+    # --scrape-profiles, so they do not affect a normal run.
     videos_per_profile: int = _enrich.VIDEOS_PER_PROFILE
     profile_batch: int = _enrich.PROFILE_BATCH
 
@@ -109,7 +105,7 @@ class Config:
             f"{self.target_accounts} accounts, {self.scrolls_per_keyword} scrolls",
             f"enrich     {self.comments_per_video} comments/video, "
             f"cap {self.max_videos_to_comment} videos"
-            f"  (full run only: {self.videos_per_profile} videos/profile)",
+            f"  (--scrape-profiles only: {self.videos_per_profile} videos/profile)",
             f"analyze    {self.model}, batch {self.comment_batch}, "
             f"workers {self.clip_workers} clip / {self.comment_workers} comment",
             f"ocr        {'+'.join(self.ocr_langs)}, "

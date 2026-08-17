@@ -8,7 +8,8 @@ from pathlib import Path
 # Run standalone (no pytest on this machine): src/ must be importable.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from sltiktok.enrich import relevant, video_url, author_of, coverage_report, seed_accounts, run_info
+from sltiktok.enrich import (relevant, video_url, author_of, coverage_report,
+                             seed_accounts, run_info, estimate)
 
 
 def test_normalize_apidojo_to_clockworks_shape():
@@ -181,6 +182,39 @@ def test_cover_url_shapes():
     assert cover_url({"coverUrl": "http://x/a.jpg"}) == "http://x/a.jpg"
     assert cover_url({"videoMeta": {"coverUrl": "http://x/b.jpg"}}) == "http://x/b.jpg"
     assert cover_url({}) == ""
+
+
+# --- run shape: one clip per account -------------------------------------
+
+def test_default_path_costs_nothing_to_find_clips():
+    """The sheet already names the clips, so a normal run scrapes no feeds.
+
+    The scope is one account, one clip. If the default ever walks profiles
+    again it returns several clips per account and bills for every one.
+    """
+    import io, contextlib
+    names = [f"u{i}" for i in range(10)]
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        estimate(names, 30, 100, 500)
+    out = buf.getvalue()
+    assert "nothing to scrape" in out
+    assert "1 per account" in out
+    # Videos cost $1/1k; with none scraped the whole bill is comments.
+    assert "WORST CASE TOTAL:    ~$0.50" in out
+
+
+def test_scrape_profiles_prices_the_feed_walk():
+    """Opting in has to show the larger bill, not the seed-path one."""
+    import io, contextlib
+    names = [f"u{i}" for i in range(10)]
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        estimate(names, 30, 100, 500, scrape_profiles=True)
+    out = buf.getvalue()
+    assert "30/account" in out
+    # 15x the seed path: 300 videos scraped, then 5x the comments.
+    assert "WORST CASE TOTAL:    ~$7.80" in out
 
 
 if __name__ == "__main__":

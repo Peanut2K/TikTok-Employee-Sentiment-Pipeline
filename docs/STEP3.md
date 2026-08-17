@@ -5,9 +5,10 @@ one is gone from TikTok (`Post not found or private`), not a scrape failure.
 Spend was $6.36 of the $29 account cap. (Step 4 analyses 98 of those 99 — one
 clip's mp4 could not be downloaded. Different number, different stage.)
 
-Comments were pulled with `--comments-from-seed`: the profile actor was down,
-and the sheet already carries one `video_url` per account, so the feed walk
-was skipped entirely.
+One account, one clip: comments are pulled for the `video_url` each sheet row
+already carries, so no profile scraping happens at all. That is now the
+default — `--scrape-profiles` opts into walking each creator's feed instead,
+which returns several clips per account and costs roughly 15× more.
 
 Scope is the **100 clips listed in the sheet**, not the accounts' full feeds.
 

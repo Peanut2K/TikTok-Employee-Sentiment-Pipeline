@@ -1,15 +1,18 @@
-"""Step 3: pull video metadata + comments for the seed accounts via Apify.
+"""Step 3: pull video metadata + comments for the seed clips via Apify.
 
-Two actors, run one after the other:
-  1. clockworks/tiktok-profile-scraper  — videos for each username
-  2. clockworks/tiktok-comments-scraper — comments for the videos that pass the filter
-
-Between them sits a keyword filter, so we only pay for comments on relevant clips.
+Scope is one clip per account — the video_url the sheet already names. By
+default nothing is scraped to find clips: they are known, and only the
+comments actor runs.
 
     export APIFY_TOKEN=...
-    .venv/bin/python apify_scrape.py --estimate      # cost/volume guess, no run
-    .venv/bin/python apify_scrape.py --limit 5       # smoke test on 5 accounts
-    .venv/bin/python apify_scrape.py                 # the real thing
+    .venv/bin/python -m sltiktok.enrich --estimate   # cost/volume guess, no run
+    .venv/bin/python -m sltiktok.enrich --limit 5    # smoke test on 5 accounts
+    .venv/bin/python -m sltiktok.enrich              # the real thing
+
+--scrape-profiles opts into the other shape: walk each creator's recent feed
+(clockworks/tiktok-profile-scraper, apidojo as fallback), keep the work clips
+with relevant(), then comment on those. Several clips per account and a much
+larger bill, so it is never the default.
 
 Output lands in out/ as JSON. Every run_id is recorded in out/runs.json so a
 bad run can be traced or re-fetched from Apify without re-scraping.
@@ -336,22 +339,36 @@ def coverage_report(usernames, videos, kept, comments):
     return report
 
 
-def estimate(usernames, videos_per_profile, comments_per_video, max_comment_videos):
+def estimate(usernames, videos_per_profile, comments_per_video, max_comment_videos,
+             scrape_profiles=False):
     """Volume and cost, printed before spending anything.
 
     Rates read off the actor pages on 2026-08-14. Confirm them in Console before
     a full run — a price change here is a silent overspend.
+
+    The two paths cost very different amounts, so this prices whichever one is
+    actually about to run: the default takes one clip per account from the
+    sheet and pays for comments only.
     """
     video_rate, comment_rate = 1.00 / 1000, 0.50 / 1000
 
-    v = len(usernames) * videos_per_profile
-    kept = int(v * 0.5)   # half survive the filter, going on the seed-list hit rate
+    if scrape_profiles:
+        v = len(usernames) * videos_per_profile
+        kept = int(v * 0.5)   # half survive the filter, on the seed-list hit rate
+    else:
+        # One clip per account, already known - nothing is scraped to find them.
+        v = 0
+        kept = len(usernames)
     to_comment = min(kept, max_comment_videos)
     c = to_comment * comments_per_video
 
+    log(f"path:                {'profile feeds' if scrape_profiles else 'seed clips (1 per account)'}")
     log(f"accounts:            {len(usernames)}")
-    log(f"videos (ceiling):    {v}  ({videos_per_profile}/account)  ~${v * video_rate:.2f}")
-    log(f"expected kept:       ~{kept}  (depends on how on-topic each account is)")
+    if scrape_profiles:
+        log(f"videos (ceiling):    {v}  ({videos_per_profile}/account)  ~${v * video_rate:.2f}")
+        log(f"expected kept:       ~{kept}  (depends on how on-topic each account is)")
+    else:
+        log(f"videos:              {kept}  (from the sheet, nothing to scrape)  $0.00")
     log(f"videos commented:    {to_comment}  (cap {max_comment_videos})")
     log(f"comments (ceiling):  ~{c}  ~${c * comment_rate:.2f}")
     log(f"WORST CASE TOTAL:    ~${v * video_rate + c * comment_rate:.2f}")
@@ -385,14 +402,18 @@ def main():
     ap.add_argument("--max-comment-videos", type=int, default=MAX_VIDEOS_TO_COMMENT)
     ap.add_argument("--estimate", action="store_true", help="print volume and exit")
     ap.add_argument("--skip-comments", action="store_true", help="videos only")
-    ap.add_argument("--comments-from-seed", action="store_true",
-                    help="skip the profile actor; pull comments for the seed "
-                         "clips already in the sheet")
+    # The scope is one clip per account - the one the sheet names. Walking a
+    # creator's feed returns several clips each, which is a different dataset
+    # and a much larger bill, so it is opt-in rather than the default.
+    ap.add_argument("--scrape-profiles", action="store_true",
+                    help="walk each account's recent feed instead of using the "
+                         "sheet's video_url (several clips per account, costs more)")
     args = ap.parse_args()
 
     usernames = seed_accounts(args.limit)
     if args.estimate:
-        return estimate(usernames, args.videos, args.comments, args.max_comment_videos)
+        return estimate(usernames, args.videos, args.comments,
+                        args.max_comment_videos, args.scrape_profiles)
 
     token = apify_token()
     if not token:
@@ -401,14 +422,14 @@ def main():
     client = ApifyClient(token)
     runs, started = [], time.time()
 
-    # The profile actor and the comments actor fail independently. When the
-    # first one is down, the seed clips already carry a video_url each, so the
-    # comments half of the job can still run.
-    if args.comments_from_seed:
+    # Default path: one clip per account, the one the sheet already names.
+    # That is the scope of the study, and it needs no profile actor at all -
+    # which also means an actor outage cannot stop the run.
+    if not args.scrape_profiles:
         seed = json.loads(SEED.read_text(encoding="utf-8"))
         urls = [r["video_url"] for r in seed if str(r.get("video_url", "")).strip()]
         urls = urls[:args.max_comment_videos]
-        log(f"comments-from-seed: {len(urls)} clips straight from the sheet")
+        log(f"seed clips: {len(urls)} — one per account, straight from the sheet")
         comments = fetch_comments(client, urls, args.comments, runs)
         save(OUT / "runs.json", runs)
         log(f"{len(comments)} comments -> {OUT}/comments_raw.json")
@@ -440,7 +461,9 @@ def main():
                  "spending the budget.")
 
     log(f"using {actor}")
-    log(f"{len(usernames)} accounts, up to {args.videos} videos each")
+    log(f"--scrape-profiles: {len(usernames)} accounts, up to "
+        f"{args.videos} videos each — several clips per account, "
+        f"not the sheet's one-to-one scope")
 
     videos = fetch_videos(client, usernames, args.videos, runs, actor)
 
