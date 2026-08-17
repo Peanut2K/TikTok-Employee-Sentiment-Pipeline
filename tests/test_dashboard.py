@@ -304,6 +304,29 @@ def test_disagree_pct_counts_only_people_who_took_a_side():
     assert row["agree_pct"] + row["disagree_pct"] == 100.0
 
 
+def test_per_theme_totals_are_a_subset_of_the_donut():
+    """The bars sum to less than the headline, and the page says by how much.
+
+    sentiment_by_theme drops อื่นๆ and ระบุไม่ได้, so 180 ไม่เห็นด้วย in the
+    donut appear as 134 across the bars. That is the intended scope, but the
+    gap has to stay explainable: everything missing is a comment that took a
+    side without naming a theme.
+    """
+    donut = {s["name"]: s["value"] for s in DATA["comment_sentiment"]}
+    rows = DATA["sentiment_by_theme"]
+    for side, key in (("เห็นด้วย", "agree"), ("ไม่เห็นด้วย", "disagree")):
+        in_bars = sum(r[key] for r in rows)
+        assert in_bars <= donut[side], f"{side}: bars exceed the donut"
+
+    # And the two skipped themes are exactly what accounts for the difference.
+    comments = b.load()["comments"]
+    skip = {"ระบุไม่ได้", "อื่นๆ"}
+    for side, key in (("เห็นด้วย", "agree"), ("ไม่เห็นด้วย", "disagree")):
+        missing = sum(1 for c in comments if c.get("sentiment") == side
+                      and (not c.get("theme") or c["theme"] in skip))
+        assert sum(r[key] for r in rows) + missing == donut[side]
+
+
 def test_top_comments_are_ranked_and_non_empty():
     for side in ("เห็นด้วย", "ไม่เห็นด้วย"):
         got = DATA["top_comments"][side]
