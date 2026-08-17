@@ -37,9 +37,39 @@ def test_every_pipeline_intent_has_a_bucket():
 
 def test_clip_counts_reconcile():
     o = DATA["overview"]
-    assert o["clips_with_intent"] + o["clips_excluded"] == o["clips_analyzed"]
+    # What the model read, plus what only a human screener labelled, is every
+    # clip the breakdowns are built from.
+    assert o["clips_analyzed"] + o["clips_from_human_label"] \
+        == o["clips_with_intent"]
     assert o["clips_analyzed"] <= o["clips_collected"]
+    assert o["clips_with_intent"] <= o["clips_collected"]
     assert sum(i["value"] for i in o["intents"]) == o["clips_with_intent"]
+
+
+def test_survey_total_is_every_account_looked_at():
+    """100 accounts were surveyed; the page says 100 and must mean it."""
+    o = DATA["overview"]
+    seed = json.loads(b.paths.SEED.read_text(encoding="utf-8"))
+    assert o["clips_collected"] == len(seed)
+    assert o["accounts"] == len(seed)
+
+
+def test_engagement_totals_ignore_clips_with_no_metadata():
+    """A row added back from the seed has no views - it must stay that way.
+
+    @ai_pon08 counts in the survey but never returned metadata. If it ever
+    carried engagement numbers they would be invented, and every per-clip
+    average on the page would be wrong.
+    """
+    clips = [clip(1, views=100, likes=10, shares=1),
+             {"video_id": "seed-2", "sheet_row": 2, "username": "u2",
+              "human_category": "บ่นงาน", "intent_level": "", "themes": [],
+              "notable_quote": "", "analysis_status": "no_metadata"}]
+    o = b.overview(clips, [])
+    assert o["views"] == 100 and o["likes"] == 10 and o["shares"] == 1
+    assert o["clips_collected"] == 2
+    assert o["clips_with_intent"] == 2
+    assert o["clips_analyzed"] == 1
 
 
 def test_no_username_reaches_the_browser():
@@ -169,6 +199,21 @@ def test_widening_drops_a_trailing_handle():
 def test_highlights_are_ordered_by_reach():
     clips = [clip(1, views=10), clip(2, views=900), clip(3, views=50)]
     assert [h["views"] for h in b.highlights(clips)] == [900, 50, 10]
+
+
+def test_human_label_stands_in_when_the_model_never_read_the_clip():
+    """Two of the 100 accounts never reached the model.
+
+    @ai_pon08's metadata never came back and @ratti_21's mp4 was unreachable.
+    A screener watched both and filed them บ่นงาน, so they count on that
+    label rather than being dropped and understating the survey by two.
+    """
+    c = {"video_id": "x", "human_category": "บ่นงาน", "intent_level": ""}
+    assert b.intent_of(c) == "บ่น"
+    # The model's own label always wins where there is one.
+    assert b.intent_of({**c, "intent_level": "ลาออกแล้ว"}) == "ลาออกแล้ว"
+    # An unrecognised category is not forced into a bucket.
+    assert b.intent_of({**c, "human_category": "อย่างอื่น"}) is None
 
 
 def test_no_intent_label_is_dropped_on_topic():

@@ -207,7 +207,7 @@ function Summary() {
     },
     {
       n: "3",
-      head: `เรื่อง${themeName(calmest.name)} แทบไม่มีใครเถียง (${calmest.disagree_pct}%)`,
+      head: `เรื่อง${themeName(calmest.name)}คือปัญหาหลัก — (${calmest.agree_pct}%) เห็นตรงกัน`,
       body: `จาก ${num(calmest.agree + calmest.disagree)} คอมเมนต์ที่เลือกข้าง ` +
             `มีเพียง ${calmest.disagree} คนที่แย้ง — เรื่องที่คนเห็นตรงกันขนาดนี้ ` +
             `คือเรื่องที่แก้แล้วไม่มีใครค้าน`,
@@ -257,7 +257,9 @@ function Summary() {
           </p>
           <p>
             {compact(O.views)} ยอดชม คือ<b>จำนวนครั้งที่ถูกเปิด</b> ไม่ใช่จำนวนคน ·
-            ตรวจสอบด้วยคน 97 คลิป ตรงกับโมเดล 87%
+            โมเดลอ่านได้ {O.clips_analyzed} คลิป (ตรวจสอบด้วยคน 97 คลิป ตรงกัน 87%)
+            {O.clips_from_human_label > 0 &&
+              ` · อีก ${O.clips_from_human_label} คลิปใช้หมวดที่คนคัดกรองระบุไว้ เพราะโมเดลเปิดคลิปไม่ได้`}
           </p>
         </div>
       </Card>
@@ -370,12 +372,16 @@ function Trend() {
   const partial = data.find((r) => r.partial);
   const full = data.filter((r) => !r.partial);
   const peak = full.reduce((a, r) => (r.clips > a.clips ? r : a), full[0]);
+  // A clip whose metadata never came back has no upload date, so it counts in
+  // the survey but cannot be placed on this axis.
+  const dated = data.reduce((s, r) => s + r.clips, 0);
 
   return (
     <Section id="trend" eyebrow="แนวโน้ม"
       title="เสียงกลุ่มนี้ดังขึ้นชัดเจนตั้งแต่ปี 2025"
       lead={`คลิปที่เก็บได้ครอบคลุม ${D.trend[0].period} ถึง ${D.trend[D.trend.length - 1].period}` +
-            " — ช่วงก่อนปี 2025 มีน้อยเพราะคลิปเก่ามักถูกลบไปแล้ว ไม่ใช่เพราะไม่มีคนพูด"}>
+            " — ช่วงก่อนปี 2025 มีน้อยเพราะคลิปเก่ามักถูกลบไปแล้ว ไม่ใช่เพราะไม่มีคนพูด" +
+            ` (นับ ${dated} คลิปที่รู้วันโพสต์)`}>
       <Card className="p-5 md:p-6">
         <ResponsiveContainer width="100%" height={320}>
           <ComposedChart data={data} margin={{ left: 0, right: 8, top: 8 }}>

@@ -99,7 +99,36 @@ SUPPORT_PHRASES = {"สู้ๆนะคะ", "สู้ๆๆ", "เก่ง�
 
 
 def load():
-    return json.loads(SRC.read_text(encoding="utf-8"))
+    """Analysed clips, plus the surveyed accounts that never produced one.
+
+    The survey covered 100 accounts; 99 returned a clip. @ai_pon08's metadata
+    never came back, so it is absent from the analysed file entirely. It is
+    still one of the hundred, and the screener filed it as บ่นงาน, so the seed
+    is read here to put it back - carrying its human category and nothing else.
+    A row with no views cannot inflate any engagement total.
+    """
+    data = json.loads(SRC.read_text(encoding="utf-8"))
+
+    seen = {c.get("username") for c in data["clips"]}
+    seed = json.loads(paths.SEED.read_text(encoding="utf-8"))
+    for i, row in enumerate(seed, start=1):
+        if row.get("username") in seen:
+            continue
+        data["clips"].append({
+            "video_id": f"seed-{i}",
+            "sheet_row": i,
+            "username": row.get("username"),
+            "caption": row.get("caption", ""),
+            "video_url": row.get("video_url", ""),
+            "human_category": row.get("category", ""),
+            # No transcript, so no model intent, no themes and no quote: this
+            # row counts in the survey and shows up nowhere that needs one.
+            "intent_level": "",
+            "themes": [],
+            "notable_quote": "",
+            "analysis_status": "no_metadata",
+        })
+    return data
 
 
 def pseudonym(sheet_row):
@@ -118,13 +147,33 @@ def quarter(iso):
     return y, (m - 1) // 3 + 1
 
 
-def analyzed(clips):
-    """Clips that actually carry an intent label.
+# The sheet's own vocabulary, for the clips the model never got to read. A
+# human screener watched these and wrote a category down; that is weaker
+# evidence than a transcript but it is not a guess.
+HUMAN_TO_INTENT = {
+    "บ่นงาน": "บ่น",
+    "รีวิวชีวิตพนักงาน": "บ่น",
+    "คิดจะลาออก": "คิดจะลาออก",
+    "ลาออกแล้ว": "ลาออกแล้ว",
+}
 
-    @ratti_21 has metadata but no transcript - it went unreachable partway
-    through step 4 - so it has no intent and is not part of any breakdown.
+
+def intent_of(clip):
+    """The clip's intent, from the model if it has one, else the screener's.
+
+    Two of the 100 accounts never reached the model: @ai_pon08's metadata
+    never came back, and @ratti_21's mp4 was unreachable in step 4. Both were
+    watched and filed as บ่นงาน by hand, so dropping them understated the
+    survey by two rather than leaving it undecided. Falling back to the human
+    label counts them without inventing anything the sheet does not say.
     """
-    return [c for c in clips if c.get("intent_level")]
+    return clip.get("intent_level") or HUMAN_TO_INTENT.get(
+        (clip.get("human_category") or "").strip())
+
+
+def analyzed(clips):
+    """Clips carrying an intent - the model's, or the screener's as fallback."""
+    return [c for c in clips if intent_of(c)]
 
 
 def overview(clips, comments):
@@ -140,7 +189,7 @@ def overview(clips, comments):
             if t != "อื่นๆ":
                 themes[t] += 1
 
-    intents = Counter(c["intent_level"] for c in real)
+    intents = Counter(intent_of(c) for c in real)
 
     # The window the sample actually covers. Stated on the page so a reader
     # is never left to assume the data runs up to the day they open it.
@@ -150,8 +199,13 @@ def overview(clips, comments):
         "collected_from": dates[0] if dates else "",
         "collected_to": dates[-1] if dates else "",
         "clips_collected": len(clips),
-        "clips_analyzed": len(real),
+        # What the model actually read. The 87% spot-check is measured against
+        # this, not against the survey total, so the two must stay separate.
+        "clips_analyzed": sum(1 for c in clips if c.get("intent_level")),
+        # Everything with an intent, the model's or the screener's.
         "clips_with_intent": len(counted),
+        "clips_from_human_label": sum(
+            1 for c in real if not c.get("intent_level")),
         # Kept at zero rather than dropped: the page still reads the field, and
         # the honest answer now is that nothing was set aside as off-topic.
         "clips_excluded": 0,
@@ -263,8 +317,8 @@ def highlights(clips, limit=HIGHLIGHT_COUNT):
         "person": pseudonym(c.get("sheet_row")),
         "quote": widen_quote(c["notable_quote"], c),
         "themes": c.get("themes") or [],
-        "intent": c["intent_level"],
-        "bucket": INTENT_BUCKETS[c["intent_level"]],
+        "intent": intent_of(c),
+        "bucket": INTENT_BUCKETS[intent_of(c)],
         "views": c.get("views") or 0,
         "likes": c.get("likes") or 0,
         "comments": c.get("comments") or 0,
