@@ -14,7 +14,7 @@ import argparse
 import json
 from pathlib import Path
 
-OUT = Path(__file__).parent / "out"
+OUT = Path(__file__).resolve().parents[1] / "out"
 
 # The sheet's categories and the model's intent_level are different
 # vocabularies for the same idea. This is the honest mapping between them;

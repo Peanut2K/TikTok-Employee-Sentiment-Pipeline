@@ -22,9 +22,9 @@ Token is read from `APIFY_TOKEN` in the environment, or from `.env`
 (gitignored).
 
 ```bash
-.venv/bin/python apify_scrape.py --estimate     # cost + volume, spends nothing
-.venv/bin/python apify_scrape.py --limit 5      # smoke test, ~$0.30 real
-.venv/bin/python apify_scrape.py                # full run
+.venv/bin/python -m sltiktok.enrich --estimate     # cost + volume, spends nothing
+.venv/bin/python -m sltiktok.enrich --limit 5      # smoke test, ~$0.30 real
+.venv/bin/python -m sltiktok.enrich                # full run
 ```
 
 Every run preflights one profile first and aborts if the actor returns
@@ -116,9 +116,9 @@ The first two are worth turning on for talking-to-camera clips, but they do
 
 ```bash
 .venv/bin/pip install easyocr
-.venv/bin/python ocr_captions.py --check      # what it would target
-.venv/bin/python ocr_captions.py --limit 5    # try a few
-.venv/bin/python ocr_captions.py              # all of them
+.venv/bin/python -m sltiktok.ocr --check      # what it would target
+.venv/bin/python -m sltiktok.ocr --limit 5    # try a few
+.venv/bin/python -m sltiktok.ocr              # all of them
 ```
 
 > **Superseded by step 4.** `analyze.py` sends the whole video to Gemini, which

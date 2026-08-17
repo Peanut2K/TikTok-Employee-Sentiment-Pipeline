@@ -30,7 +30,8 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-HERE = Path(__file__).parent
+# Project root: data and credentials live there, not next to this module.
+HERE = Path(__file__).resolve().parents[2]
 OUT = HERE / "out"
 VIDEOS = OUT / "seed_100_metadata.json"
 COMMENTS = OUT / "comments_raw.json"
@@ -349,7 +350,7 @@ def fetch_via_apify(videos, order):
     api.apify.com and therefore reachable. Costs about $0.004 per clip.
     """
     from apify_client import ApifyClient
-    from apify_scrape import apify_token, run_info
+    from sltiktok.enrich import apify_token, run_info
 
     todo = [v for v in videos
             if not (MEDIA / media_name(v["video_url"].rsplit("/", 1)[-1], order)).exists()]

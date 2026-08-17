@@ -1,6 +1,11 @@
 """Checks the caption-sorting logic. Run: .venv/bin/python test_scrape.py"""
 
-from scrape import SEVEN, COMPETITORS, EMPLOYEE, CUSTOMER, categorize
+import sys
+from pathlib import Path
+# Run standalone (no pytest on this machine): src/ must be importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from sltiktok.discover import SEVEN, COMPETITORS, EMPLOYEE, CUSTOMER, categorize
 
 
 def keep(caption):

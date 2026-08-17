@@ -5,9 +5,14 @@ these check reconciliation and leakage rather than shape.
 
     .venv/bin/python test_dashboard_data.py
 """
+
+import sys
+from pathlib import Path
+# Run standalone (no pytest on this machine): src/ must be importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import json
 
-import build_dashboard_data as b
+import sltiktok.dashboard as b
 
 # Built once - the real run segments 5,181 comments and is the slow part.
 DATA = b.build()

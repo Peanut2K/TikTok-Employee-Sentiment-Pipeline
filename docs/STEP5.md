@@ -6,7 +6,7 @@ built from step 4's export. No backend, no build step.
 ## Run it
 
 ```bash
-.venv/bin/python build_dashboard_data.py    # out/dashboard.json -> web/data.js
+.venv/bin/python -m sltiktok.dashboard    # out/dashboard.json -> web/data.js
 xdg-open web/index.html                     # or: python3 -m http.server -d web
 ```
 
@@ -17,17 +17,17 @@ from the CORS rule that would block `fetch()` on a local file.
 Tests:
 
 ```bash
-.venv/bin/python test_dashboard_data.py     # 26 checks, no pytest needed
+.venv/bin/python tests/test_dashboard.py     # 27 checks, no pytest needed
 ```
 
 ## Files
 
 | File | What |
 |---|---|
-| `build_dashboard_data.py` | Reads `out/dashboard.json`, precomputes every aggregate |
+| `src/sltiktok/dashboard.py` | Reads `out/dashboard.json`, precomputes every aggregate |
 | `web/data.js` | Generated, 14KB. `window.DATA = {...}` |
 | `web/index.html` | The page. React + Recharts + Tailwind from CDN |
-| `test_dashboard_data.py` | Reconciliation and PDPA-leak guards |
+| `tests/test_dashboard.py` | Reconciliation and PDPA-leak guards |
 | `docs/superpowers/specs/2026-08-16-cp-dashboard-design.md` | Design decisions |
 
 2.3MB of raw export becomes 14KB of dashboard data. Nothing is aggregated in

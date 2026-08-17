@@ -6,9 +6,14 @@ No network, no API key — the Gemini calls are the expensive part and the
 export/schema logic is what silently produces a wrong dashboard.
 """
 
+import sys
+from pathlib import Path
+# Run standalone (no pytest on this machine): src/ must be importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 import json
 
-from analyze import (COMMENT_SCHEMA, CLIP_SCHEMA, NO_THEME, THEMES, batch_key,
+from sltiktok.analyze import (COMMENT_SCHEMA, CLIP_SCHEMA, NO_THEME, THEMES, batch_key,
                      comment_prompt, clip_prompt, export, tally)
 
 
@@ -87,7 +92,7 @@ def test_export_joins_clips_comments_and_counts(tmp_path=None):
          "likes": 1, "sentiment": "ไม่เห็นด้วย", "theme": NO_THEME, "status": "ok"},
     ]}
 
-    import analyze
+    import sltiktok.analyze as analyze
     from pathlib import Path
     import tempfile
     original = analyze.OUT
@@ -115,7 +120,7 @@ def test_export_joins_clips_comments_and_counts(tmp_path=None):
 def test_ocr_fills_in_only_where_the_video_pass_failed():
     """A clip TikTok refused to serve still has step 3's cover OCR. It must
     never overwrite a real Gemini reading, and its origin must be visible."""
-    import analyze
+    import sltiktok.analyze as analyze
     videos = [
         {"video_url": "https://www.tiktok.com/@a/video/1", "username": "a"},
         {"video_url": "https://www.tiktok.com/@b/video/2", "username": "b"},
@@ -160,7 +165,7 @@ def test_ocr_fills_in_only_where_the_video_pass_failed():
 def test_media_name_follows_sheet_order():
     """Files are named by sheet row so they line up with what a person reads.
     A clip outside the seed must not borrow a neighbour's number or name."""
-    from analyze import media_name
+    from sltiktok.analyze import media_name
     order = {"111": (3, "noonanduanglada"), "222": (17, "a.b/c d")}
     assert media_name("111", order) == "003_noonanduanglada.mp4"
     # Anything a filesystem would choke on is flattened, nothing is dropped.

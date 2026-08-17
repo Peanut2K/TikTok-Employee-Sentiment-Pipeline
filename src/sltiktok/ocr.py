@@ -14,8 +14,8 @@ This script does (3) locally with easyocr, so it costs nothing per clip beyond
 time. Downloading the videos is the paid part, and that is a separate decision.
 
     .venv/bin/pip install easyocr
-    .venv/bin/python ocr_captions.py --check          # what would it target
-    .venv/bin/python ocr_captions.py --limit 5        # try a few first
+    .venv/bin/python -m sltiktok.ocr --check          # what would it target
+    .venv/bin/python -m sltiktok.ocr --limit 5        # try a few first
 
 Reads out/videos_filtered.json, writes out/ocr_text.json.
 """
@@ -26,7 +26,8 @@ import re
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).parent
+# Project root: data and credentials live there, not next to this module.
+HERE = Path(__file__).resolve().parents[2]
 OUT = HERE / "out"
 VIDEOS = OUT / "seed_100_metadata.json"
 COVERS = OUT / "covers"

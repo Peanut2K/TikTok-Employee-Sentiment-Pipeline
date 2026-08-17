@@ -24,7 +24,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 from playwright.sync_api import sync_playwright
 
-HERE = Path(__file__).parent
+# Project root: data and credentials live there, not next to this module.
+HERE = Path(__file__).resolve().parents[2]
 STATE = HERE / "tiktok_state.json"
 SERVICE_ACCOUNT = HERE / "aiwriteupload-a58b02f9f539.json"
 SHEET_KEY = "1ipeGci4ONpxeU4vc5QlaXAnqFAViB6xn7_DKHs790os"

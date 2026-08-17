@@ -3,13 +3,18 @@
 No network, no token — these are the parts that fail silently and cost money.
 """
 
-from apify_scrape import relevant, video_url, author_of, coverage_report, seed_accounts, run_info
+import sys
+from pathlib import Path
+# Run standalone (no pytest on this machine): src/ must be importable.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from sltiktok.enrich import relevant, video_url, author_of, coverage_report, seed_accounts, run_info
 
 
 def test_normalize_apidojo_to_clockworks_shape():
     """Verbatim apidojo item. Counts were confirmed identical to clockworks
     on 5 overlapping videos, so the mapping must not lose or rename any."""
-    from apify_scrape import normalize
+    from sltiktok.enrich import normalize
     item = {
         "id": "7650464146546265365",
         "title": "รอบนี้ เจอหัวหน้าดีแตกแทน #หัวหน้าเฮงซวย",
@@ -29,7 +34,7 @@ def test_normalize_apidojo_to_clockworks_shape():
 
 
 def test_normalize_leaves_clockworks_items_alone():
-    from apify_scrape import normalize
+    from sltiktok.enrich import normalize
     original = {"id": "1", "playCount": 5, "text": "x",
                 "webVideoUrl": "https://www.tiktok.com/@a/video/1"}
     assert normalize(original) is original
@@ -147,9 +152,9 @@ def test_seed_list_loads_and_is_clean():
     assert len(names) == 100, f"expected 100 seed accounts, got {len(names)}"
 
 
-# --- ocr_captions.py ---
+# --- ocr.py ---
 
-from ocr_captions import needs_ocr, cover_url
+from sltiktok.ocr import needs_ocr, cover_url
 
 
 def test_ocr_targets_hashtag_only_captions():

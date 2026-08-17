@@ -14,9 +14,10 @@ from pathlib import Path
 import gspread
 from google.oauth2.service_account import Credentials
 
-from scrape import HEADERS, SHEET_KEY, SERVICE_ACCOUNT, write_sheet
+from sltiktok.discover import HEADERS, SHEET_KEY, SERVICE_ACCOUNT, write_sheet
 
-HERE = Path(__file__).parent
+# Project root: data and credentials live there, not next to this module.
+HERE = Path(__file__).resolve().parents[1]
 OAUTH_CLIENT = HERE / "client_secret.json"
 OAUTH_TOKEN = HERE / "oauth_token.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]

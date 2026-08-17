@@ -12,18 +12,18 @@ OCR](#why-this-replaces-the-ocr) below.
 `GOOGLE_API_KEY` is read from the environment or `.env` (gitignored).
 
 ```bash
-.venv/bin/python analyze.py --estimate       # cost + volume, spends nothing
-.venv/bin/python analyze.py --limit 5        # smoke test
-.venv/bin/python analyze.py                  # clips, then comments
-.venv/bin/python analyze.py --comments-only  # skip the video pass
-.venv/bin/python analyze.py --export         # rebuild exports, no API calls
+.venv/bin/python -m sltiktok.analyze --estimate       # cost + volume, spends nothing
+.venv/bin/python -m sltiktok.analyze --limit 5        # smoke test
+.venv/bin/python -m sltiktok.analyze                  # clips, then comments
+.venv/bin/python -m sltiktok.analyze --comments-only  # skip the video pass
+.venv/bin/python -m sltiktok.analyze --export         # rebuild exports, no API calls
 ```
 
 Resumable. Every clip and every comment batch is written as it lands, and a
 rerun only picks up what is missing or previously failed. Killing the run
 mid-way costs nothing already paid for.
 
-Run the tests before a full pass: `.venv/bin/python test_analyze.py`.
+Run the tests before a full pass: `.venv/bin/python tests/test_analyze.py`.
 
 ## Cost
 
@@ -101,8 +101,8 @@ an enum member with a 400 and the entire comment pass fails at once —
 ## Spot-check
 
 ```bash
-.venv/bin/python spotcheck.py             # 30 clips, model next to human label
-.venv/bin/python spotcheck.py --disagree  # only the mismatches
+.venv/bin/python tools/spotcheck.py             # 30 clips, model next to human label
+.venv/bin/python tools/spotcheck.py --disagree  # only the mismatches
 ```
 
 `intent_level` agreed with the sheet's human category on **67/77** clips

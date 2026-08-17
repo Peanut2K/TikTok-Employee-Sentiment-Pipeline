@@ -25,9 +25,10 @@ from pathlib import Path
 
 from apify_client import ApifyClient
 
-from scrape import SEVEN, EMPLOYEE
+from sltiktok.discover import SEVEN, EMPLOYEE
 
-HERE = Path(__file__).parent
+# Project root: data and credentials live there, not next to this module.
+HERE = Path(__file__).resolve().parents[2]
 OUT = HERE / "out"
 SEED = HERE / "filtered_100.json"
 
