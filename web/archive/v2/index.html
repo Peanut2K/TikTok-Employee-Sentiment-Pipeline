@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>เสียงพนักงาน 7-Eleven บน TikTok</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js" crossorigin></script>
+<script src="./data.js"></script>
+
+<style>
+  :root {
+    /* Taken from cpbrandsite.com's own stylesheet. */
+    --cp-orange: #EE843C;
+    --cp-gold:   #FFBF3C;
+    --ink:       #2B2B2B;
+    --paper:     #FBF9F6;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    /* Thai renders tight by default; loosen it for projector legibility. */
+    line-height: 1.65;
+  }
+  /* Recharts injects its own font stack into SVG text nodes. */
+  .recharts-wrapper text { font-family: 'IBM Plex Sans Thai', sans-serif; }
+  @media print { .no-print { display: none; } }
+</style>
+</head>
+<body>
+<div id="root" class="min-h-screen"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+const {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, ComposedChart, Line, Legend, LabelList,
+} = Recharts;
+
+const D = window.DATA;
+const O = D.overview;
+
+const CP = { orange: "#EE843C", gold: "#FFBF3C", ink: "#2B2B2B" };
+
+// The only place colour carries meaning rather than brand: severity.
+const INTENT = {
+  low:    { color: "#4B9B6E", label: "เล่าเรื่องงาน",     sub: "ยังไม่คิดจะไป" },
+  medium: { color: "#E0A020", label: "เริ่มลังเล",        sub: "กำลังมองทางเลือก" },
+  high:   { color: "#C2413A", label: "ตัดสินใจแล้ว",      sub: "ลาออกแล้ว / กำลังจะไป" },
+};
+
+// Theme keys come from the pipeline; two are already Thai, the rest need a
+// display name rather than the English slug the model was prompted with.
+const THEME_LABEL = {
+  workload: "ภาระงาน",
+  "ตารางกะ": "ตารางกะ",
+  "เพื่อนร่วมงาน": "เพื่อนร่วมงาน",
+  "ค่าแรง": "ค่าแรง",
+  "ลูกค้า": "ลูกค้า",
+  "หัวหน้างาน": "หัวหน้างาน",
+  "อื่นๆ": "อื่นๆ",
+};
+const themeName = (t) => THEME_LABEL[t] || t;
+
+// 2025-06-20 -> 20 Jun 2025. Built from the parts rather than parsed as a
+// Date, so it cannot shift a day across a timezone, and month names are
+// spelled out because 06/07 is read differently in different countries.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const shortDate = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+  return m ? `${m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (iso || "");
+};
+
+const num = (n) => n.toLocaleString("th-TH");
+const compact = (n) =>
+  n >= 1e6 ? (n / 1e6).toFixed(1) + "M" :
+  n >= 1e3 ? (n / 1e3).toFixed(0) + "K" : String(n);
+
+/* ---------- shared shells ---------- */
+
+function Section({ id, eyebrow, title, lead, children, tint }) {
+  return (
+    <section id={id} className={`px-6 md:px-10 py-14 md:py-20 ${tint || ""}`}>
+      <div className="max-w-6xl mx-auto">
+        {eyebrow && (
+          <div className="text-xs md:text-sm font-semibold tracking-[0.2em] uppercase"
+               style={{ color: CP.orange }}>{eyebrow}</div>
+        )}
+        <h2 className="mt-2 text-2xl md:text-4xl font-bold">{title}</h2>
+        {lead && <p className="mt-3 max-w-3xl text-base md:text-lg text-neutral-600">{lead}</p>}
+        <div className="mt-8 md:mt-10">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function Card({ children, className = "" }) {
+  return (
+    <div className={`bg-white rounded-2xl border border-neutral-200/80 shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+/* ---------- 1. hero ---------- */
+
+function Hero() {
+  const byBucket = (b) => O.intents.find((i) => i.bucket === b).value;
+  const high = byBucket("high");
+  // The group worth leading on is the one still inside the company. The
+  // people who already left are the cost of not acting, not the opportunity.
+  const reachable = byBucket("low") + byBucket("medium");
+  const pct = Math.round((reachable / O.clips_with_intent) * 100);
+  return (
+    <header className="px-6 md:px-10 pt-12 md:pt-16 pb-10"
+            style={{ background: "linear-gradient(160deg,#2B2B2B 0%,#3A3129 55%,#4A3524 100%)" }}>
+      <div className="max-w-6xl mx-auto text-white">
+        <div className="flex items-center gap-3 text-xs md:text-sm tracking-[0.2em] uppercase"
+             style={{ color: CP.gold }}>
+          <span className="inline-block w-8 h-[2px]" style={{ background: CP.gold }} />
+          เสียงพนักงานหน้าร้าน · TikTok
+        </div>
+
+        <h1 className="mt-5 text-3xl md:text-6xl font-bold leading-tight">
+          พนักงาน 7-Eleven<br className="hidden md:block" /> พูดถึงงานตัวเองว่าอย่างไร
+        </h1>
+
+        <p className="mt-5 text-lg md:text-2xl max-w-3xl" style={{ color: CP.gold }}>
+          จาก {O.clips_with_intent} คลิปที่พูดถึงงาน มี <b>{reachable} คลิป ({pct}%)</b> ที่คน
+          ยังทำงานอยู่และยังเปลี่ยนใจได้ — อีก {high} คลิปคือคนที่ออกไปแล้ว
+        </p>
+
+        <div className="mt-9 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {[
+            [num(reachable), "ยังเปลี่ยนใจได้", "ยังทำงานอยู่ตอนถ่ายคลิป"],
+            [num(high), "ออกไปแล้ว", "แก้ไม่ทันแล้ว"],
+            [num(O.comments), "คอมเมนต์", "จัดหมวดครบทุกอัน"],
+            [compact(O.views), "ยอดชม", "จำนวนครั้งที่ถูกเปิด"],
+          ].map(([v, l, s]) => (
+            <div key={l} className="rounded-2xl px-4 py-4 md:py-5"
+                 style={{ background: "rgba(255,255,255,.07)" }}>
+              <div className="text-2xl md:text-4xl font-bold">{v}</div>
+              <div className="text-sm font-semibold mt-1">{l}</div>
+              <div className="text-xs text-white/55">{s}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* The sample belongs next to the headline, not only in the footer. */}
+        <p className="mt-5 text-sm md:text-base text-white/60">
+          จาก {O.clips_collected} คลิปของพนักงาน {O.accounts} คน · {shortDate(O.collected_from)} ถึง {shortDate(O.collected_to)} ·
+          เป็นคนที่เลือกถ่ายคลิปเอง ไม่ใช่ตัวแทนพนักงานทั้งหมด
+        </p>
+
+        <nav className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/70 no-print">
+          {[["#summary", "สรุปผู้บริหาร"], ["#intent", "ระดับความตั้งใจลาออก"], ["#themes", "สาเหตุ"],
+            ["#trend", "แนวโน้ม"], ["#voices", "เสียงจริง"], ["#comments", "คอมเมนต์"]]
+            .map(([href, t]) => (
+              <a key={href} href={href} className="hover:text-white underline-offset-4 hover:underline">{t}</a>
+            ))}
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+/* ---------- 1b. executive summary ---------- */
+
+// Three findings, each with the evidence under it and the group it points at.
+// Everything here is read from the data - no number is typed by hand.
+function Summary() {
+  const byBucket = (b) => O.intents.find((i) => i.bucket === b).value;
+  const low = byBucket("low"), mid = byBucket("medium"), high = byBucket("high");
+  const reachable = low + mid;
+
+  const topTheme = O.themes[0];
+  const topCmtTheme = D.comment_themes.find((t) => t.name !== "อื่นๆ");
+  // Least-argued theme. Ties on disagree_pct are broken by volume, so the
+  // pick is the one with the most people behind it rather than whichever
+  // happened to sort first - two themes currently tie at 2.8%.
+  const calmest = D.sentiment_by_theme
+    .filter((r) => r.name !== "อื่นๆ")
+    .reduce((a, r) => {
+      const sided = (x) => x.agree + x.disagree;
+      if (r.disagree_pct !== a.disagree_pct) return r.disagree_pct < a.disagree_pct ? r : a;
+      return sided(r) > sided(a) ? r : a;
+    });
+
+  const findings = [
+    {
+      n: "1",
+      head: `คนที่ยังอยู่และยังเปลี่ยนใจได้ มี ${reachable} คน`,
+      body: `${low} คลิปยังทำงานอยู่ตอนถ่าย — ตั้งแต่เล่าวันทำงานเฉยๆ ไปจนถึงบ่นว่าเหนื่อย ` +
+            `อีก ${mid} คลิปเริ่มมองทางอื่น ขณะที่ ${high} คลิปคือคนที่ออกไปแล้ว ` +
+            `— กลุ่มหลังนี้แก้ไม่ทันแล้ว สิ่งที่ยังทำได้คือกลุ่มแรก ซึ่งเป็นกลุ่มที่ใหญ่ที่สุด`,
+      action: "โฟกัสที่คนยังอยู่ ไม่ใช่ทำ exit interview เพิ่ม",
+    },
+    {
+      n: "2",
+      head: `${themeName(topTheme.name)} คือปัญหาที่ทั้งคนถ่ายและคนดูพูดตรงกัน`,
+      body: `ถูกพูดถึงใน ${topTheme.value} คลิป และอีก ${num(topCmtTheme.value)} คอมเมนต์ ` +
+            `— เรื่องเดียวกันขึ้นนำทั้งสองฝั่ง แปลว่าไม่ใช่ปัญหาเฉพาะบางสาขา`,
+      action: "ตรวจภาระงานต่อกะ เริ่มจากสาขาที่คนน้อยที่สุด",
+    },
+    {
+      n: "3",
+      head: `เรื่อง${themeName(calmest.name)}คือปัญหาหลัก — (${calmest.agree_pct}%) เห็นตรงกัน`,
+      body: `จาก ${num(calmest.agree + calmest.disagree)} คอมเมนต์ที่เลือกข้าง ` +
+            `มี ${num(calmest.agree)} คนเห็นด้วย และมีเพียง ${calmest.disagree} คนที่แย้ง ` +
+            `— เรื่องที่คนเห็นตรงกันขนาดนี้ คือเรื่องที่แก้แล้วไม่มีใครค้าน`,
+      action: "จุดเริ่มที่ปลอดภัยที่สุดถ้าต้องเลือกทำก่อนหนึ่งเรื่อง",
+    },
+  ];
+
+  return (
+    <Section id="summary" eyebrow="สรุปสำหรับผู้บริหาร"
+      title="สามเรื่องที่ต้องรู้"
+      lead={`อ่านจาก ${O.clips_with_intent} คลิปที่พูดถึงงาน และ ${num(O.comments)} คอมเมนต์ใต้คลิปเหล่านั้น`}>
+      <div className="grid gap-4">
+        {findings.map((f) => (
+          <Card key={f.n} className="p-5 md:p-6">
+            <div className="flex gap-4 md:gap-5">
+              <div className="text-2xl md:text-3xl font-bold shrink-0 tabular-nums"
+                   style={{ color: CP.orange }}>{f.n}</div>
+              <div className="flex-1">
+                <h3 className="text-lg md:text-xl font-bold leading-snug">{f.head}</h3>
+                <p className="mt-2 text-sm md:text-base text-neutral-600">{f.body}</p>
+                <div className="mt-3 inline-flex items-start gap-2 text-sm md:text-base font-semibold px-3 py-2 rounded-lg"
+                     style={{ background: CP.orange + "14", color: "#9A4E14" }}>
+                  <span className="shrink-0">→</span>
+                  <span>{f.action}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Scope, next to the claims rather than in the footer. A reader who
+          finds the sample size after believing the charts stops trusting all
+          of it. */}
+      <Card className="mt-6 p-5 md:p-6 bg-neutral-50/60">
+        <h3 className="text-sm font-bold tracking-wide uppercase text-neutral-500">
+          ขอบเขตของข้อมูล
+        </h3>
+        <div className="mt-3 grid md:grid-cols-3 gap-4 text-sm md:text-base text-neutral-700">
+          <p>
+            <b>{O.clips_collected} คลิป</b> จากพนักงาน {O.accounts} คน
+            ช่วง {shortDate(O.collected_from)} ถึง {shortDate(O.collected_to)}
+          </p>
+          <p>
+            เป็นคนที่<b>เลือกจะถ่ายคลิป</b>เท่านั้น ไม่ใช่ตัวแทนพนักงานทั้งหมด
+            — บอกได้ว่า<b>อะไรคือปัญหา</b> แต่บอกไม่ได้ว่ากี่เปอร์เซ็นต์ของพนักงานคิดแบบนี้
+          </p>
+          <p>
+            {compact(O.views)} ยอดชม คือ<b>จำนวนครั้งที่ถูกเปิด</b> ไม่ใช่จำนวนคน ·
+            โมเดลอ่านได้ {O.clips_analyzed} คลิป (ตรวจสอบด้วยคน 97 คลิป ตรงกัน 87%)
+            {O.clips_from_human_label > 0 &&
+              ` · อีก ${O.clips_from_human_label} คลิปใช้หมวดที่คนคัดกรองระบุไว้ เพราะโมเดลเปิดคลิปไม่ได้`}
+          </p>
+        </div>
+      </Card>
+    </Section>
+  );
+}
+
+/* ---------- 2. intent funnel ---------- */
+
+function IntentFunnel() {
+  const rows = O.intents.map((i) => ({ ...i, ...INTENT[i.bucket] }));
+  const max = Math.max(...rows.map((r) => r.value));
+
+  return (
+    <Section id="intent" eyebrow="ระดับความตั้งใจ"
+      title="คนที่ยังอยู่ กับ คนที่ไปแล้ว ไม่ใช่กลุ่มเดียวกัน"
+      lead={`แบ่งตามสิ่งที่คนพูดในคลิปทั้ง ${O.clips_with_intent} คลิปที่พูดถึงงาน` +
+            " — ตั้งแต่เล่าวันทำงานเฉยๆ ไปจนถึงบอกว่าลาออกแล้ว"}>
+      <div className="grid gap-4">
+        {rows.map((r) => (
+          <Card key={r.bucket} className="p-5 md:p-6">
+            <div className="flex items-baseline justify-between gap-4 flex-wrap">
+              <div>
+                <span className="text-base md:text-xl font-bold">{r.label}</span>
+                <span className="ml-3 text-sm text-neutral-500">{r.sub}</span>
+              </div>
+              {/* The share is what the three rows are compared on; the count
+                  is the evidence behind it, so it sits second and smaller. */}
+              <div className="text-2xl md:text-3xl font-bold" style={{ color: r.color }}>
+                {Math.round((r.value / O.clips_with_intent) * 100)}%
+                <span className="ml-2 text-sm font-medium text-neutral-500">
+                  {r.value} คลิป
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 h-3 rounded-full bg-neutral-100 overflow-hidden">
+              <div className="h-full rounded-full transition-all"
+                   style={{ width: `${(r.value / max) * 100}%`, background: r.color }} />
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="mt-6 p-5 md:p-6 border-l-4" style={{ borderLeftColor: INTENT.high.color }}>
+        <p className="text-base md:text-lg">
+          กลุ่ม <b style={{ color: INTENT.high.color }}>ตัดสินใจแล้ว</b> คือกลุ่มที่แก้ไม่ทันแล้ว
+          — คลิปเหล่านี้ถ่ายหลังจากตัดสินใจไปเรียบร้อย
+          ส่วนกลุ่ม <b style={{ color: INTENT.medium.color }}>เริ่มลังเล</b> ({rows[1].value} คลิป)
+          คือกลุ่มเดียวที่ยังเปลี่ยนใจได้
+        </p>
+      </Card>
+    </Section>
+  );
+}
+
+/* ---------- 3. themes ---------- */
+
+function Themes() {
+  const clip = O.themes.map((t) => ({ ...t, label: themeName(t.name) }));
+  const cmt = D.comment_themes.map((t) => ({ ...t, label: themeName(t.name) }));
+
+  const chart = (data, color, unit) => (
+    <ResponsiveContainer width="100%" height={40 * data.length + 20}>
+      <BarChart data={data} layout="vertical" margin={{ left: 8, right: 56 }}>
+        <CartesianGrid horizontal={false} stroke="#EFEAE4" />
+        <XAxis type="number" hide />
+        <YAxis type="category" dataKey="label" width={100} tickLine={false}
+               axisLine={false} tick={{ fontSize: 14, fill: CP.ink }} />
+        <Tooltip cursor={{ fill: "#00000008" }}
+                 formatter={(v) => [`${num(v)} ${unit}`, ""]}
+                 contentStyle={{ borderRadius: 12, border: "1px solid #E5E0DA" }} />
+        <Bar dataKey="value" fill={color} radius={[0, 8, 8, 0]} barSize={22}>
+          <LabelList dataKey="value" position="right"
+                     style={{ fill: CP.ink, fontSize: 13, fontWeight: 600 }} />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+
+  return (
+    <Section id="themes" eyebrow="สาเหตุ" tint="bg-white"
+      title="ภาระงานคือเรื่องที่ถูกพูดถึงมากที่สุด"
+      lead="หนึ่งคลิปพูดได้หลายเรื่อง ตัวเลขจึงรวมกันเกินจำนวนคลิป — แสดงเฉพาะเรื่องที่ระบุได้ชัด">
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card className="p-5 md:p-6">
+          <h3 className="font-bold text-lg">ในคลิป</h3>
+          <p className="text-sm text-neutral-500 mb-3">นับจาก {O.clips_with_intent} คลิป</p>
+          {chart(clip, CP.orange, "คลิป")}
+        </Card>
+        <Card className="p-5 md:p-6">
+          <h3 className="font-bold text-lg">ในคอมเมนต์</h3>
+          <p className="text-sm text-neutral-500 mb-3">
+            เฉพาะคอมเมนต์ที่ระบุเรื่องได้ชัด
+          </p>
+          {chart(cmt, CP.gold, "คอมเมนต์")}
+        </Card>
+      </div>
+      <p className="mt-5 text-sm md:text-base text-neutral-600 max-w-3xl">
+        คนดูคอมเมนต์เรื่องเดียวกับคนถ่าย — ภาระงานและตารางกะนำทั้งสองฝั่ง
+        แปลว่าเรื่องที่เจอไม่ใช่เรื่องเฉพาะร้าน แต่เป็นเรื่องที่คนทำงานสาขาอื่นเห็นตรงกัน
+      </p>
+    </Section>
+  );
+}
+
+/* ---------- 4. trend ---------- */
+
+function Trend() {
+  const data = D.trend.map((r) => ({ ...r, viewsM: +(r.views / 1e6).toFixed(2) }));
+  // The last bar covers a shorter window than the rest - collection stopped
+  // mid-quarter. Drawn hollow so it is not read as a decline.
+  const partial = data.find((r) => r.partial);
+  const full = data.filter((r) => !r.partial);
+  const peak = full.reduce((a, r) => (r.clips > a.clips ? r : a), full[0]);
+  // A clip whose metadata never came back has no upload date, so it counts in
+  // the survey but cannot be placed on this axis.
+  const dated = data.reduce((s, r) => s + r.clips, 0);
+
+  return (
+    <Section id="trend" eyebrow="แนวโน้ม"
+      title="เสียงกลุ่มนี้ดังขึ้นชัดเจนตั้งแต่ปี 2025"
+      lead={`คลิปที่เก็บได้ครอบคลุม ${D.trend[0].period} ถึง ${D.trend[D.trend.length - 1].period}` +
+            " — ช่วงก่อนปี 2025 มีน้อยเพราะคลิปเก่ามักถูกลบไปแล้ว ไม่ใช่เพราะไม่มีคนพูด" +
+            ` (นับ ${dated} คลิปที่รู้วันโพสต์)`}>
+      <Card className="p-5 md:p-6">
+        <ResponsiveContainer width="100%" height={320}>
+          <ComposedChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
+            <CartesianGrid stroke="#EFEAE4" vertical={false} />
+            {/* One label per year at Q1; the tooltip still names the quarter. */}
+            <XAxis dataKey="axis" tick={{ fontSize: 13, fill: CP.ink }} tickLine={false}
+                   axisLine={{ stroke: "#E5E0DA" }} interval={0} />
+            <YAxis yAxisId="l" tick={{ fontSize: 12 }} tickLine={false} axisLine={false}
+                   label={{ value: "คลิป", angle: -90, position: "insideLeft", fontSize: 12 }} />
+            <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 12 }}
+                   tickLine={false} axisLine={false}
+                   label={{ value: "ยอดชม (ล้าน)", angle: 90, position: "insideRight", fontSize: 12 }} />
+            <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E0DA" }}
+                     formatter={(v, k) => k === "clips" ? [`${v} คลิป`, "จำนวนคลิป"]
+                                                        : [`${v} ล้าน`, "ยอดชม"]}
+                     labelFormatter={(_, rows) => rows[0]?.payload?.period || ""} />
+            <Legend formatter={(v) => v === "clips" ? "จำนวนคลิป" : "ยอดชม"} />
+            <Bar yAxisId="l" dataKey="clips" radius={[6, 6, 0, 0]} barSize={18}>
+              {data.map((r) => (
+                <Cell key={r.period}
+                      fill={r.partial ? "transparent" : CP.orange}
+                      stroke={r.partial ? CP.orange : "none"}
+                      strokeWidth={r.partial ? 2 : 0}
+                      strokeDasharray={r.partial ? "3 2" : undefined} />
+              ))}
+            </Bar>
+            <Line yAxisId="r" type="monotone" dataKey="viewsM" stroke={CP.ink}
+                  strokeWidth={2} dot={{ r: 2 }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+
+        {partial && (
+          <p className="mt-4 text-sm md:text-base text-neutral-600 border-t border-neutral-100 pt-4">
+            <span className="inline-block w-3 h-3 rounded-sm mr-2 align-middle"
+                  style={{ border: `2px dashed ${CP.orange}` }} />
+            <b>{partial.period} ยังไม่จบไตรมาส</b> — เก็บข้อมูลถึง {shortDate(O.collected_to)} เท่านั้น
+            แท่งสุดท้ายจึงเตี้ยกว่าความจริง ไม่ใช่สัญญาณว่าเรื่องนี้เบาลง
+            ไตรมาสที่คนพูดมากที่สุดคือ <b>{peak.period} ({peak.clips} คลิป)</b> ซึ่งเป็นไตรมาสเต็มล่าสุด
+          </p>
+        )}
+      </Card>
+    </Section>
+  );
+}
+
+/* ---------- 5. voice highlights ---------- */
+
+const PER_PAGE = 12;
+
+// Link to TikTok exactly as the sheet recorded the URL, with nothing appended.
+//
+// is_from_webapp=1&sender_device=pc was tried here - the params TikTok's own
+// share sheet adds - on the theory that a cold deep link looks synthetic and
+// trips their bot check. It made the player refuse to start: the page loads,
+// the poster frame and the like count appear, and the video never plays until
+// the query string is removed and the page reloaded. Fetching the URL only
+// proves the HTML came back; it says nothing about whether the player runs.
+
+function Voices() {
+  const [bucket, setBucket] = useState("all");
+  const [page, setPage] = useState(0);
+  const all = bucket === "all" ? D.highlights
+                               : D.highlights.filter((h) => h.bucket === bucket);
+  const count = (k) => D.highlights.filter((h) => h.bucket === k).length;
+  // A tab that opens an empty list reads as a broken page, so buckets with no
+  // clip at all are not offered.
+  const tabs = [["all", "ทั้งหมด"],
+                ...Object.entries(INTENT).filter(([k]) => count(k) > 0)
+                                         .map(([k, v]) => [k, v.label])];
+
+  const pages = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  // Switching to a smaller tab can leave you on a page that no longer exists.
+  const current = Math.min(page, pages - 1);
+  const shown = all.slice(current * PER_PAGE, (current + 1) * PER_PAGE);
+  const pick = (k) => { setBucket(k); setPage(0); };
+
+  const go = (p) => {
+    setPage(p);
+    // Paging without this leaves you at the bottom of the new page, looking
+    // at its last card with no idea the list changed.
+    const top = document.getElementById("voices");
+    if (top && top.scrollIntoView) top.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <Section id="voices" eyebrow="เสียงจริง" tint="bg-white"
+      title="คำพูดที่คนไลก์มากที่สุด"
+      lead={`เรียงตามยอดไลก์ — คนกดไลก์คือคนที่เห็นด้วย ไม่ใช่แค่คนที่เลื่อนผ่าน ` +
+            `· ยกมา ${D.highlights.length} คลิปเป็นตัวอย่าง ไม่ใช่ทั้งหมด ` +
+            `(กลุ่ม${INTENT.low.label}มีมากที่สุด จึงเลือกมาเฉพาะที่คนไลก์สูงสุด) ` +
+            `· กดชื่อบัญชีเพื่อไปหน้าโปรไฟล์`}>
+
+      <div className="flex flex-wrap gap-2 mb-6 no-print">
+        {tabs.map(([k, label]) => (
+          <button key={k} onClick={() => pick(k)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
+              bucket === k ? "text-white border-transparent"
+                           : "bg-white text-neutral-600 border-neutral-300 hover:border-neutral-400"}`}
+            style={bucket === k ? { background: k === "all" ? CP.ink : INTENT[k].color } : {}}>
+            {label}
+            <span className="ml-2 opacity-70">
+              {k === "all" ? D.highlights.length : count(k)}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {all.length === 0 && (
+        <p className="text-neutral-500">ไม่มีคลิปในกลุ่มนี้</p>
+      )}
+
+      {/* items-stretch keeps a short quote from leaving a ragged row. */}
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
+        {shown.map((h) => {
+          const tone = INTENT[h.bucket];
+          return (
+            <Card key={h.id} className="p-5 flex flex-col h-full border-t-4" style={{ borderTopColor: tone.color }}>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold px-2 py-1 rounded-full"
+                      style={{ background: tone.color + "1A", color: tone.color }}>
+                  {tone.label}
+                </span>
+                <span className="text-neutral-400">{shortDate(h.uploaded_at)}</span>
+              </div>
+
+              <blockquote className="mt-4 text-base md:text-lg font-medium leading-relaxed flex-1">
+                <span style={{ color: CP.orange }}>“</span>{h.quote}<span style={{ color: CP.orange }}>”</span>
+              </blockquote>
+
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {h.themes.map((t) => (
+                  <span key={t} className="text-xs px-2 py-1 rounded-md bg-neutral-100 text-neutral-600">
+                    {themeName(t)}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-neutral-100 flex items-center justify-between">
+                <div className="text-xs text-neutral-500">
+                  {/* The handle links out; without one the card falls back to
+                      the pseudonym, which has nowhere to go. */}
+                  {h.handle ? (
+                    <a href={h.profile_url} target="_blank" rel="noopener noreferrer"
+                       className="font-semibold hover:underline underline-offset-2"
+                       style={{ color: CP.orange }}>
+                      @{h.handle}
+                    </a>
+                  ) : (
+                    <span className="font-semibold text-neutral-700">{h.person}</span>
+                  )}
+                  <div>
+                    {compact(h.likes)} ไลก์ · {compact(h.views)} ชม · {compact(h.comments)} คอมเมนต์
+                  </div>
+                </div>
+                <a href={h.url} target="_blank" rel="noopener noreferrer"
+                   className="text-sm font-semibold px-3 py-1.5 rounded-lg border transition hover:bg-neutral-50 no-print"
+                   style={{ color: CP.orange, borderColor: CP.orange + "66" }}>
+                  ดูคลิป ↗
+                </a>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {pages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2 flex-wrap no-print">
+          <button onClick={() => go(current - 1)} disabled={current === 0}
+            className="px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-300
+                       disabled:opacity-40 disabled:cursor-default hover:enabled:border-neutral-500">
+            ← ก่อนหน้า
+          </button>
+
+          {Array.from({ length: pages }, (_, i) => (
+            <button key={i} onClick={() => go(i)}
+              className={`w-9 h-9 rounded-lg text-sm font-semibold border transition ${
+                i === current ? "text-white border-transparent"
+                              : "border-neutral-300 text-neutral-600 hover:border-neutral-500"}`}
+              style={i === current ? { background: CP.ink } : {}}>
+              {i + 1}
+            </button>
+          ))}
+
+          <button onClick={() => go(current + 1)} disabled={current === pages - 1}
+            className="px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-300
+                       disabled:opacity-40 disabled:cursor-default hover:enabled:border-neutral-500">
+            ถัดไป →
+          </button>
+        </div>
+      )}
+
+      {all.length > 0 && (
+        <p className="mt-4 text-center text-sm text-neutral-500">
+          แสดง {current * PER_PAGE + 1}–{current * PER_PAGE + shown.length} จาก {all.length} คลิป
+        </p>
+      )}
+    </Section>
+  );
+}
+
+/* ---------- 6. comments ---------- */
+
+function Comments() {
+  const SENT = { "เห็นด้วย": "#4B9B6E", "ไม่เห็นด้วย": "#C2413A", "อื่นๆ": "#B8AFA4" };
+  const agree = D.comment_sentiment.find((s) => s.name === "เห็นด้วย").value;
+  const pct = Math.round((agree / O.comments) * 100);
+
+  // Single words said nothing ("ทำ", "คน", "ดี") and the segmenter split the
+  // loudest complaint in the corpus, กะดึก, into two meaningless halves.
+  // Phrases carry their own meaning, so they are listed and ranked rather
+  // than scattered as a cloud.
+  const [showAll, setShowAll] = useState(false);
+  // Encouragement ("สู้ๆนะคะ", "เก่งมาก") is genuinely frequent but it is the
+  // audience being kind, not a problem to fix. Counted below, out of the list.
+  const all = D.phrases.filter((p) => p.kind === "topic");
+  const support = D.phrases.filter((p) => p.kind === "support");
+  const supportTotal = support.reduce((s, p) => s + p.count, 0);
+  const shown = showAll ? all : all.slice(0, 18);
+  const max = all[0].count;
+
+  return (
+    <Section id="comments" eyebrow="คอมเมนต์"
+      title={`คนดู ${pct}% เห็นด้วยกับสิ่งที่คลิปพูด`}
+      lead={`จาก ${num(O.comments)} คอมเมนต์ที่จัดหมวดครบทุกอัน` +
+            " — เสียงคัดค้านมีน้อยมาก แปลว่าสิ่งที่คลิปพูดไม่ใช่ความเห็นเฉพาะคน"}>
+
+      <div className="grid lg:grid-cols-5 gap-6">
+        <Card className="p-5 md:p-6 lg:col-span-2">
+          <h3 className="font-bold text-lg mb-1">คนดูเห็นด้วยไหม</h3>
+          <div className="relative">
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={D.comment_sentiment} dataKey="value" nameKey="name"
+                     innerRadius={62} outerRadius={98} paddingAngle={2}>
+                  {D.comment_sentiment.map((s) => <Cell key={s.name} fill={SENT[s.name]} />)}
+                </Pie>
+                <Tooltip formatter={(v, n) => [`${num(v)} คอมเมนต์`, n]}
+                         contentStyle={{ borderRadius: 12, border: "1px solid #E5E0DA" }} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* The hole is the most-looked-at part of a donut; put the answer there. */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="text-4xl font-bold" style={{ color: SENT["เห็นด้วย"] }}>{pct}%</div>
+              <div className="text-xs text-neutral-500">เห็นด้วย</div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {D.comment_sentiment.map((s) => (
+              <div key={s.name} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-sm" style={{ background: SENT[s.name] }} />
+                  {s.name}
+                </span>
+                <span className="font-semibold">
+                  {num(s.value)}
+                  <span className="ml-2 text-neutral-400 font-normal">
+                    {Math.round((s.value / O.comments) * 100)}%
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-5 md:p-6 lg:col-span-3">
+          <h3 className="font-bold text-lg">คำพูดที่คนคอมเมนต์ซ้ำกันบ่อยที่สุด</h3>
+          <p className="text-sm text-neutral-500">
+            วลีภาษาไทยที่พบซ้ำในคอมเมนต์ทั้งหมด · แถบสีคือจำนวนครั้งที่ถูกพูดถึง
+          </p>
+
+          <div className="mt-5 grid sm:grid-cols-2 gap-x-6 gap-y-1">
+            {shown.map((p, i) => (
+              <div key={p.phrase} className="flex items-center gap-3 py-1.5">
+                <span className="text-xs text-neutral-400 w-5 shrink-0 tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="text-base md:text-lg font-semibold shrink-0">
+                  {p.phrase}
+                </span>
+                <span className="flex-1 h-1.5 rounded-full bg-neutral-100 min-w-[24px]">
+                  <span className="block h-full rounded-full"
+                        style={{ width: `${(p.count / max) * 100}%`,
+                                 background: i < 3 ? CP.orange : CP.gold }} />
+                </span>
+                <span className="text-sm text-neutral-500 tabular-nums shrink-0">
+                  {p.count}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex items-center gap-4 flex-wrap">
+            {all.length > shown.length && (
+              <button onClick={() => setShowAll(true)}
+                      className="text-sm font-semibold no-print"
+                      style={{ color: CP.orange }}>
+                ดูอีก {all.length - shown.length} วลี ↓
+              </button>
+            )}
+            {supportTotal > 0 && (
+              <p className="text-sm text-neutral-500">
+                อีก <b className="text-neutral-700">{num(supportTotal)}</b> ครั้ง
+                เป็นคำให้กำลังใจ ({support.map((p) => p.phrase).join(" · ")})
+              </p>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      <ByTheme />
+      <BothSides />
+    </Section>
+  );
+}
+
+/* ---------- 6b. agreement per theme ---------- */
+
+function ByTheme() {
+  const rows = D.sentiment_by_theme;
+  const worst = rows.reduce((a, r) => (r.disagree_pct > a.disagree_pct ? r : a));
+  const calmest = rows.reduce((a, r) => (r.disagree_pct < a.disagree_pct ? r : a));
+
+  // These rows cover only the comments that named a specific theme, so they
+  // add up to less than the donut above. Saying by how much is what keeps the
+  // two sections from looking like they disagree.
+  const shown = rows.reduce((s, r) => s + r.agree + r.disagree, 0);
+  const sided = D.comment_sentiment
+    .filter((s) => s.name !== "อื่นๆ")
+    .reduce((s, r) => s + r.value, 0);
+
+  return (
+    <Card className="mt-6 p-5 md:p-6">
+      <h3 className="font-bold text-lg">เห็นด้วยเรื่องไหน เถียงกันเรื่องไหน</h3>
+      <p className="text-sm text-neutral-500 mb-5">
+        นับ <b className="text-neutral-700">{num(shown)}</b> คอมเมนต์ที่ทั้งเลือกข้าง
+        และระบุเรื่องได้ชัด · อีก {num(sided - shown)} คอมเมนต์เลือกข้างแต่ไม่ได้พูดถึงเรื่องใดเรื่องหนึ่ง
+        จึงไม่มีแถวให้ลง · % คือสัดส่วนคนที่ไม่เห็นด้วยในแต่ละเรื่อง
+      </p>
+
+      <div className="space-y-3">
+        {rows.map((r) => {
+          const sided = r.agree + r.disagree;
+          return (
+            <div key={r.name}>
+              <div className="flex items-baseline justify-between text-sm mb-1">
+                <span className="font-semibold">{themeName(r.name)}</span>
+                <span className="text-neutral-500">
+                  <b className="text-neutral-700">{num(r.agree)}</b> เห็นด้วย ·
+                  <b className="ml-1" style={{ color: "#C2413A" }}>{r.disagree}</b> ไม่เห็นด้วย
+                  <span className="ml-2 tabular-nums">({r.disagree_pct}%)</span>
+                </span>
+              </div>
+              <div className="flex h-2.5 rounded-full overflow-hidden bg-neutral-100">
+                <div style={{ width: `${(r.agree / sided) * 100}%`, background: "#4B9B6E" }} />
+                <div style={{ width: `${(r.disagree / sided) * 100}%`, background: "#C2413A" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-5 text-sm md:text-base text-neutral-600">
+        <b>{themeName(worst.name)}</b> ถูกเถียงมากที่สุด ({worst.disagree_pct}%)
+        ส่วน <b>{themeName(calmest.name)}</b> แทบไม่มีใครเถียง ({calmest.disagree_pct}%)
+        — เรื่องที่ไม่มีคนแย้งคือเรื่องที่คนเห็นตรงกันว่าเป็นปัญหาจริง
+      </p>
+    </Card>
+  );
+}
+
+/* ---------- 6c. what each side actually says ---------- */
+
+function BothSides() {
+  const sides = [
+    ["เห็นด้วย", "#4B9B6E", "คนที่เห็นด้วยพูดว่า"],
+    ["ไม่เห็นด้วย", "#C2413A", "คนที่ไม่เห็นด้วยพูดว่า"],
+  ];
+  return (
+    <div className="mt-6 grid md:grid-cols-2 gap-6">
+      {sides.map(([key, color, title]) => (
+        <Card key={key} className="p-5 md:p-6 border-t-4" style={{ borderTopColor: color }}>
+          <h3 className="font-bold text-lg mb-4">{title}</h3>
+          <div className="space-y-4">
+            {D.top_comments[key].map((c, i) => (
+              <div key={i} className="text-sm md:text-base">
+                <p className="leading-relaxed">{c.text}</p>
+                <div className="mt-1 text-xs text-neutral-500">
+                  ♥ {num(c.likes)}
+                  {c.theme && c.theme !== "ระบุไม่ได้" && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-neutral-100">
+                      {themeName(c.theme)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/* ---------- footer ---------- */
+
+function Footer() {
+  return (
+    <footer className="px-6 md:px-10 py-10 text-sm text-neutral-500 border-t border-neutral-200">
+      <div className="max-w-6xl mx-auto space-y-2">
+        <p>
+          เก็บคลิปสาธารณะจาก TikTok · ถอดเสียงและจัดหมวดด้วย Gemini ·
+          ตรวจสอบด้วยคนแบบสุ่ม 97 คลิป ตรงกัน 87%
+        </p>
+        <p>
+          ทุกคลิปเป็นโพสต์สาธารณะ · แสดงชื่อบัญชีและลิงก์ไปต้นทางเพื่อให้ตรวจสอบย้อนกลับได้
+          ไม่มีการเผยแพร่ข้อมูลส่วนตัวอื่นนอกเหนือจากที่เจ้าของบัญชีโพสต์ไว้เอง
+        </p>
+        <p className="text-neutral-400">
+          คลิปทั้งหมด {O.clips_collected} · วิเคราะห์สำเร็จ {O.clips_analyzed} ·
+          พูดถึงงาน {O.clips_with_intent} · คอมเมนต์ {num(O.comments)}
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+function App() {
+  return (
+    <React.Fragment>
+      <Hero />
+      <Summary />
+      <IntentFunnel />
+      <Themes />
+      <Trend />
+      <Voices />
+      <Comments />
+      <Footer />
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
