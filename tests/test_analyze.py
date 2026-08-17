@@ -95,14 +95,22 @@ def test_export_joins_clips_comments_and_counts(tmp_path=None):
     import sltiktok.analyze as analyze
     from pathlib import Path
     import tempfile
-    original = analyze.OUT
-    analyze.OUT = Path(tempfile.mkdtemp())
-    analyze.REPORT = analyze.OUT / "analysis_report.json"
+    # export() writes through module-level targets, so redirecting them sends
+    # the whole export into a temp dir instead of over the real out/ tree.
+    saved = (analyze.OUT, analyze.REPORT, analyze.DASHBOARD,
+             analyze.CLIPS_CSV, analyze.COMMENTS_CSV)
+    tmp = Path(tempfile.mkdtemp())
+    analyze.OUT = tmp
+    analyze.REPORT = tmp / "analysis_report.json"
+    analyze.DASHBOARD = tmp / "dashboard.json"
+    analyze.CLIPS_CSV = tmp / "clips.csv"
+    analyze.COMMENTS_CSV = tmp / "comments.csv"
     try:
-        rep = export(videos, clips, batches)
-        rows = json.loads((analyze.OUT / "dashboard.json").read_text())["clips"]
+        rep = analyze.export(videos, clips, batches)
+        rows = json.loads(analyze.DASHBOARD.read_text())["clips"]
     finally:
-        analyze.OUT, analyze.REPORT = original, original / "analysis_report.json"
+        (analyze.OUT, analyze.REPORT, analyze.DASHBOARD,
+         analyze.CLIPS_CSV, analyze.COMMENTS_CSV) = saved
 
     assert rep["clips_analyzed"] == 1 and rep["clips_failed"] == 1
     assert rep["comments_classified"] == 2
@@ -140,16 +148,23 @@ def test_ocr_fills_in_only_where_the_video_pass_failed():
 
     from pathlib import Path
     import tempfile
-    original_out, original_load = analyze.OUT, analyze.load_ocr
-    analyze.OUT = Path(tempfile.mkdtemp())
-    analyze.REPORT = analyze.OUT / "analysis_report.json"
+    # export() writes through module-level targets, so redirecting them sends
+    # the whole export into a temp dir instead of over the real out/ tree.
+    saved = (analyze.OUT, analyze.REPORT, analyze.DASHBOARD, analyze.CLIPS_CSV,
+             analyze.COMMENTS_CSV, analyze.load_ocr)
+    tmp = Path(tempfile.mkdtemp())
+    analyze.OUT = tmp
+    analyze.REPORT = tmp / "analysis_report.json"
+    analyze.DASHBOARD = tmp / "dashboard.json"
+    analyze.CLIPS_CSV = tmp / "clips.csv"
+    analyze.COMMENTS_CSV = tmp / "comments.csv"
     analyze.load_ocr = lambda: {"1": "ocr ที่ไม่ควรใช้", "2": "ocr หน้าปก"}
     try:
         rep = analyze.export(videos, clips, {})
-        rows = json.loads((analyze.OUT / "dashboard.json").read_text())["clips"]
+        rows = json.loads(analyze.DASHBOARD.read_text())["clips"]
     finally:
-        analyze.OUT, analyze.load_ocr = original_out, original_load
-        analyze.REPORT = original_out / "analysis_report.json"
+        (analyze.OUT, analyze.REPORT, analyze.DASHBOARD, analyze.CLIPS_CSV,
+         analyze.COMMENTS_CSV, analyze.load_ocr) = saved
 
     by_id = {r["video_id"]: r for r in rows}
     assert by_id["1"]["on_screen_text"] == "จาก gemini"
@@ -176,6 +191,40 @@ def test_media_name_follows_sheet_order():
 
 def test_tally_sorts_by_count():
     assert list(tally(["a", "b", "b", "c", "b", "a"])) == ["b", "a", "c"]
+
+
+def test_export_targets_are_redirectable():
+    """A test that redirects the export must not write over the real data.
+
+    export() used to build its paths inline, so redirecting analyze.OUT moved
+    the report but not dashboard.json - a test run overwrote 2.3MB of real
+    output with two fixture rows. The targets are module-level for that
+    reason, and every one of them has to be honoured.
+    """
+    import sltiktok.analyze as analyze
+    from pathlib import Path
+    import tempfile
+
+    saved = (analyze.REPORT, analyze.DASHBOARD, analyze.CLIPS_CSV,
+             analyze.COMMENTS_CSV)
+    real = analyze.DASHBOARD
+    before = real.read_bytes() if real.exists() else None
+    tmp = Path(tempfile.mkdtemp())
+    analyze.REPORT = tmp / "analysis_report.json"
+    analyze.DASHBOARD = tmp / "dashboard.json"
+    analyze.CLIPS_CSV = tmp / "clips.csv"
+    analyze.COMMENTS_CSV = tmp / "comments.csv"
+    try:
+        analyze.export([{"video_url": "https://www.tiktok.com/@u/video/1",
+                         "username": "u"}], {}, {})
+        assert analyze.DASHBOARD.exists(), "export ignored the redirected path"
+        assert (tmp / "clips.csv").exists()
+    finally:
+        (analyze.REPORT, analyze.DASHBOARD, analyze.CLIPS_CSV,
+         analyze.COMMENTS_CSV) = saved
+
+    if before is not None:
+        assert real.read_bytes() == before, "export wrote over the real data"
 
 
 if __name__ == "__main__":

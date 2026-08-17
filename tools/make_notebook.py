@@ -65,13 +65,15 @@ code('''
 from pathlib import Path
 from sltiktok import analyze, dashboard, discover, enrich, ocr
 
+# out/ is grouped by what it costs to lose: 01_raw and 02_analyzed were
+# paid for, 03_export rebuilds for free, cache/ is disposable.
 for label, p in [
-    ("seed metadata ", analyze.VIDEOS),
-    ("raw comments  ", analyze.COMMENTS),
-    ("clips analyzed", analyze.CLIPS_RESULT),
-    ("comments class", analyze.COMMENTS_RESULT),
-    ("dashboard.json", dashboard.SRC),
-    ("web/data.js   ", dashboard.DEST),
+    ("01 seed metadata ", analyze.VIDEOS),
+    ("01 raw comments  ", analyze.COMMENTS),
+    ("02 clips analyzed", analyze.CLIPS_RESULT),
+    ("02 comments class", analyze.COMMENTS_RESULT),
+    ("03 dashboard.json", dashboard.SRC),
+    ("   web/data.js   ", dashboard.DEST),
 ]:
     size = f"{p.stat().st_size / 1e6:6.2f} MB" if p.exists() else "   missing"
     print(f"{label}  {size}  {p}")

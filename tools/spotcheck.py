@@ -12,9 +12,13 @@ the category a human already assigned in the sheet.
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parents[1] / "out"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from sltiktok import paths
+
+OUT = paths.OUT
 
 # The sheet's categories and the model's intent_level are different
 # vocabularies for the same idea. This is the honest mapping between them;
@@ -34,7 +38,7 @@ def main():
     ap.add_argument("-n", type=int, default=30)
     args = ap.parse_args()
 
-    rows = json.loads((OUT / "dashboard.json").read_text(encoding="utf-8"))["clips"]
+    rows = json.loads(paths.DASHBOARD.read_text(encoding="utf-8"))["clips"]
     rows = [r for r in rows if r["analysis_status"] == "ok"]
 
     agree = compared = 0

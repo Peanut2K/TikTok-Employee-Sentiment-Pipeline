@@ -30,17 +30,24 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-# Project root: data and credentials live there, not next to this module.
-HERE = Path(__file__).resolve().parents[2]
-OUT = HERE / "out"
-VIDEOS = OUT / "seed_100_metadata.json"
-COMMENTS = OUT / "comments_raw.json"
-MEDIA = OUT / "media"
+from sltiktok import paths
 
-CLIPS_RESULT = OUT / "clips_analyzed.json"
-COMMENTS_RESULT = OUT / "comments_classified.json"
-REPORT = OUT / "analysis_report.json"
-RAW_LOG = OUT / "gemini_raw.jsonl"
+HERE = paths.ROOT
+OUT = paths.OUT
+VIDEOS = paths.VIDEOS
+COMMENTS = paths.COMMENTS_RAW
+MEDIA = paths.MEDIA
+
+CLIPS_RESULT = paths.CLIPS_RESULT
+COMMENTS_RESULT = paths.COMMENTS_RESULT
+RAW_LOG = paths.RAW_LOG
+
+# Export targets. Module-level so a caller (or a test) can redirect the whole
+# export by reassigning them, the way OUT used to work.
+REPORT = paths.REPORT
+DASHBOARD = paths.DASHBOARD
+CLIPS_CSV = paths.CLIPS_CSV
+COMMENTS_CSV = paths.COMMENTS_CSV
 
 MODEL = "gemini-3.7-flash"
 COMMENT_BATCH = 50
@@ -85,7 +92,7 @@ def cookie_file():
     state = HERE / "tiktok_state.json"
     if not state.exists():
         return None
-    dest = OUT / ".tt_cookies.txt"
+    dest = paths.COOKIES
     cookies = json.loads(state.read_text(encoding="utf-8")).get("cookies", [])
     lines = ["# Netscape HTTP Cookie File"]
     for c in cookies:
@@ -504,7 +511,7 @@ def load_ocr():
     refuses to serve it is the difference between a row with something in it
     and a row with nothing. text_source records which one a value came from.
     """
-    path = OUT / "ocr_text.json"
+    path = paths.OCR_TEXT
     if not path.exists():
         return {}
     return {k: (v.get("ocr_text") or "").strip()
@@ -561,18 +568,18 @@ def export(videos, clips, comment_batches):
     # Sheet order, so a row in the export sits where the screener expects it.
     rows.sort(key=lambda r: (r["sheet_row"] is None, r["sheet_row"] or 0))
 
-    (OUT / "dashboard.json").write_text(
+    DASHBOARD.write_text(
         json.dumps({"clips": rows, "comments": flat_comments}, ensure_ascii=False, indent=2),
         encoding="utf-8")
 
-    with (OUT / "clips.csv").open("w", newline="", encoding="utf-8-sig") as f:
+    with CLIPS_CSV.open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()
         for r in rows:
             w.writerow({**r, "themes": "|".join(r["themes"])})
 
     if flat_comments:
-        with (OUT / "comments.csv").open("w", newline="", encoding="utf-8-sig") as f:
+        with COMMENTS_CSV.open("w", newline="", encoding="utf-8-sig") as f:
             w = csv.DictWriter(f, fieldnames=list(flat_comments[0].keys()))
             w.writeheader()
             w.writerows(flat_comments)
@@ -691,7 +698,7 @@ def main():
         if isinstance(v, dict):
             for kk, vv in v.items():
                 print(f"    {kk or '(blank)':<22} {vv}")
-    print(f"\nwrote {OUT}/dashboard.json, clips.csv, comments.csv, analysis_report.json")
+    print(f"\nwrote {DASHBOARD.parent}/ — dashboard.json, clips.csv, comments.csv, analysis_report.json")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ built from step 4's export. No backend, no build step.
 ## Run it
 
 ```bash
-.venv/bin/python -m sltiktok.dashboard    # out/dashboard.json -> web/data.js
+.venv/bin/python -m sltiktok.dashboard    # out/03_export/dashboard.json -> web/data.js
 xdg-open web/index.html                     # or: python3 -m http.server -d web
 ```
 

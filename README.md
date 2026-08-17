@@ -75,7 +75,11 @@ tests/          one suite per stage
 tools/          spotcheck (model vs human labels), push_sheet
 web/            the deliverable dashboard
 docs/           STEP3/4/5 runbooks, design specs
-out/            generated data (gitignored)
+out/            generated data (gitignored), grouped by cost to lose:
+                  01_raw/      paid for (Apify)
+                  02_analyzed/ paid for (Gemini)
+                  03_export/   free to rebuild — dashboard.json lives here
+                  cache/       disposable (mp4s, covers)
 ```
 
 Docs: [STEP3](docs/STEP3.md) comments · [STEP4](docs/STEP4.md) analysis ·

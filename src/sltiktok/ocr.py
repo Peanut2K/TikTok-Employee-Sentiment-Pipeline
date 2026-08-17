@@ -26,12 +26,13 @@ import re
 import sys
 from pathlib import Path
 
-# Project root: data and credentials live there, not next to this module.
-HERE = Path(__file__).resolve().parents[2]
-OUT = HERE / "out"
-VIDEOS = OUT / "seed_100_metadata.json"
-COVERS = OUT / "covers"
-RESULT = OUT / "ocr_text.json"
+from sltiktok import paths
+
+HERE = paths.ROOT
+OUT = paths.OUT
+VIDEOS = paths.VIDEOS
+COVERS = paths.COVERS
+RESULT = paths.OCR_TEXT
 
 # Frame text is usually large and centred. Thai + English covers this dataset.
 LANGS = ["th", "en"]

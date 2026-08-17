@@ -16,10 +16,11 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
-# Project root: data and credentials live there, not next to this module.
-HERE = Path(__file__).resolve().parents[2]
-SRC = HERE / "out" / "dashboard.json"
-DEST = HERE / "web" / "data.js"
+from sltiktok import paths
+
+HERE = paths.ROOT
+SRC = paths.DASHBOARD
+DEST = paths.WEB_DATA
 
 # The story asks for three intent levels; the pipeline emits four labels.
 # They map one-to-one, with ไม่เกี่ยว excluded from the funnel but still

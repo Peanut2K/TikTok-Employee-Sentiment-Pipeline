@@ -30,10 +30,11 @@ from apify_client import ApifyClient
 
 from sltiktok.discover import SEVEN, EMPLOYEE
 
-# Project root: data and credentials live there, not next to this module.
-HERE = Path(__file__).resolve().parents[2]
-OUT = HERE / "out"
-SEED = HERE / "filtered_100.json"
+from sltiktok import paths
+
+HERE = paths.ROOT
+OUT = paths.OUT
+SEED = paths.SEED
 
 PROFILE_ACTOR = "clockworks/tiktok-profile-scraper"
 COMMENTS_ACTOR = "clockworks/tiktok-comments-scraper"
@@ -211,8 +212,8 @@ def fetch_videos(client, usernames, videos_per_profile, runs, actor=PROFILE_ACTO
                 break
         else:
             empty = 0
-        save(OUT / "videos_raw.json", videos)
-        save(OUT / "runs.json", runs)
+        save(paths.VIDEOS_RAW, videos)
+        save(paths.RUNS, runs)
     return videos
 
 
@@ -242,8 +243,8 @@ def fetch_comments(client, urls, per_video, runs):
         got.sort(key=lambda c: int(c.get("diggCount") or 0), reverse=True)
         comments.extend(got)
         log(f"  run {info['run_id']} {info['status']} -> {len(got)} comments")
-        save(OUT / "comments_raw.json", comments)
-        save(OUT / "runs.json", runs)
+        save(paths.COMMENTS_RAW, comments)
+        save(paths.RUNS, runs)
     return comments
 
 
@@ -325,7 +326,7 @@ def coverage_report(usernames, videos, kept, comments):
         "comments_expected_ceiling": len(kept_urls) * COMMENTS_PER_VIDEO,
         "videos_per_account": {u: len(by_author.get(u.lower(), [])) for u in usernames},
     }
-    save(OUT / "coverage_report.json", report)
+    save(paths.COVERAGE, report)
 
     log("")
     log(f"accounts:  {report['accounts_with_videos']}/{len(usernames)} returned videos")
@@ -431,7 +432,7 @@ def main():
         urls = urls[:args.max_comment_videos]
         log(f"seed clips: {len(urls)} — one per account, straight from the sheet")
         comments = fetch_comments(client, urls, args.comments, runs)
-        save(OUT / "runs.json", runs)
+        save(paths.RUNS, runs)
         log(f"{len(comments)} comments -> {OUT}/comments_raw.json")
         return
 
@@ -472,7 +473,7 @@ def main():
         ok, why = relevant(v)
         v["_filter_reason"] = why
         (kept if ok else dropped).append(v)
-    save(OUT / "videos_filtered.json", kept)
+    save(paths.VIDEOS_FILTERED, kept)
     log(f"filter: kept {len(kept)} of {len(videos)}")
 
     comments = []
@@ -487,7 +488,7 @@ def main():
         comments = fetch_comments(client, urls, args.comments, runs)
 
     coverage_report(usernames, videos, kept, comments)
-    save(OUT / "runs.json", runs)
+    save(paths.RUNS, runs)
     log(f"done in {(time.time() - started) / 60:.1f} min -> {OUT}/")
 
 
