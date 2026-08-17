@@ -296,10 +296,12 @@ function IntentFunnel() {
                 <span className="text-base md:text-xl font-bold">{r.label}</span>
                 <span className="ml-3 text-sm text-neutral-500">{r.sub}</span>
               </div>
+              {/* The share is what the three rows are compared on; the count
+                  is the evidence behind it, so it sits second and smaller. */}
               <div className="text-2xl md:text-3xl font-bold" style={{ color: r.color }}>
-                {r.value}
+                {Math.round((r.value / O.clips_with_intent) * 100)}%
                 <span className="ml-2 text-sm font-medium text-neutral-500">
-                  {Math.round((r.value / O.clips_with_intent) * 100)}%
+                  {r.value} คลิป
                 </span>
               </div>
             </div>
