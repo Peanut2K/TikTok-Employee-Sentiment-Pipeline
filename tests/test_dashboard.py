@@ -72,14 +72,36 @@ def test_engagement_totals_ignore_clips_with_no_metadata():
     assert o["clips_analyzed"] == 1
 
 
-def test_no_username_reaches_the_browser():
-    """Pseudonymization is the whole PDPA story - one leaked key breaks it."""
+def test_only_the_highlight_handle_identifies_anyone():
+    """Handles ship on the highlight cards; nothing else identifying does.
+
+    Showing the creator's handle is a deliberate choice - the accounts are
+    public and each card already links to the clip - but it is the only
+    identifying field allowed through. The transcript, the local media path
+    and the raw clip rows must still stay server-side, and no OTHER section
+    may start naming people.
+    """
     blob = json.dumps(DATA, ensure_ascii=False)
-    assert '"username"' not in blob
     assert '"media_file"' not in blob
     assert '"transcript"' not in blob
+    # The raw per-clip rows never reach the page; only the built sections do.
+    assert set(DATA) == {"overview", "trend", "highlights", "phrases",
+                         "comment_sentiment", "comment_themes",
+                         "sentiment_by_theme", "top_comments"}
+    for section in ("top_comments", "phrases"):
+        assert "handle" not in json.dumps(DATA[section], ensure_ascii=False)
     for h in DATA["highlights"]:
         assert h["person"].startswith("ผู้ใช้")
+        # A handle on the card has to be reachable, or it is exposure with
+        # nothing offered back.
+        if h["handle"]:
+            assert h["profile_url"] == f"https://www.tiktok.com/@{h['handle']}"
+
+
+def test_highlights_are_ranked_by_likes():
+    """A view is the feed autoplaying; a like is a person agreeing."""
+    likes = [h["likes"] for h in DATA["highlights"]]
+    assert likes == sorted(likes, reverse=True)
 
 
 def test_highlight_links_are_the_only_place_a_handle_appears():
@@ -196,9 +218,38 @@ def test_widening_drops_a_trailing_handle():
     assert b.widen_quote("บางวันประสาทแดก", c) == full
 
 
-def test_highlights_are_ordered_by_reach():
-    clips = [clip(1, views=10), clip(2, views=900), clip(3, views=50)]
-    assert [h["views"] for h in b.highlights(clips)] == [900, 50, 10]
+def test_over_represented_bucket_is_sampled_not_truncated():
+    """เล่าเรื่องงาน is most of the list; capping it keeps the rest visible.
+
+    The cap applies after the sort, so what survives is the most-liked of
+    that bucket - a sample - rather than whichever happened to come first.
+    Other buckets are untouched, and the funnel above still reports the
+    real totals.
+    """
+    low = [clip(i, intent="บ่น", likes=i) for i in range(1, 41)]
+    high = [clip(100 + i, intent="ลาออกแล้ว", likes=1) for i in range(5)]
+    got = b.highlights(low + high)
+
+    kept_low = [h for h in got if h["bucket"] == "low"]
+    assert len(kept_low) == b.BUCKET_CAP["low"]
+    # The most-liked survive: likes 40 down to 11, not 1 upward.
+    assert kept_low[0]["likes"] == 40
+    assert min(h["likes"] for h in kept_low) == 40 - b.BUCKET_CAP["low"] + 1
+    # An uncapped bucket keeps everything.
+    assert len([h for h in got if h["bucket"] == "high"]) == 5
+
+
+def test_highlights_rank_endorsement_over_reach():
+    """The most-viewed clip is not the most-agreed-with one.
+
+    Views measure what the feed pushed; likes measure who agreed. Where the
+    two disagree, likes win - and views only break a tie.
+    """
+    clips = [clip(1, views=9000, likes=5), clip(2, views=10, likes=900),
+             clip(3, views=50, likes=5)]
+    got = b.highlights(clips)
+    assert [h["likes"] for h in got] == [900, 5, 5]
+    assert [h["views"] for h in got] == [10, 9000, 50]
 
 
 def test_human_label_stands_in_when_the_model_never_read_the_clip():
@@ -357,7 +408,10 @@ def test_clip_themes_drop_the_catch_all():
 def test_real_run_produces_every_section():
     assert DATA["overview"]["clips_analyzed"] == 98
     assert DATA["overview"]["comments"] == 5181
-    assert len(DATA["highlights"]) == b.HIGHLIGHT_COUNT
+    # A ceiling, not a target: the bucket caps land it well under.
+    assert 0 < len(DATA["highlights"]) <= b.HIGHLIGHT_COUNT
+    assert sum(1 for h in DATA["highlights"] if h["bucket"] == "low") \
+        <= b.BUCKET_CAP["low"]
     assert len(DATA["phrases"]) == b.PHRASE_COUNT
     assert DATA["trend"][0]["period"] == "2019Q4"
 

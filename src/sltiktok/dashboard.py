@@ -48,7 +48,16 @@ BUCKET_LABEL = {
     "high": "ลาออกแล้ว",
 }
 
-HIGHLIGHT_COUNT = 12
+# Every clip that has a quote to show. The page pages through them 12 at a
+# time, so this is the size of the archive behind the first screen, not the
+# number anyone reads at once - 88 of the 100 clips yield a usable quote.
+HIGHLIGHT_COUNT = 100
+
+# เล่าเรื่องงาน is 63 of those 88, enough to bury the two smaller groups under
+# pages of the same kind of clip. Capped to the most-liked 30 as a sample -
+# the funnel above already reports the real 71, and this list is for reading
+# quotes, not for counting. The other buckets are small enough to show whole.
+BUCKET_CAP = {"low": 30}
 PHRASE_COUNT = 40
 
 # Below this, a quote has usually been clipped mid-sentence and reads as a
@@ -304,17 +313,47 @@ def widen_quote(quote, clip):
     return quote
 
 
+def profile_url(username):
+    """The creator's TikTok page. Empty when there is no handle to link to."""
+    return f"https://www.tiktok.com/@{username}" if username else ""
+
+
 def highlights(clips, limit=HIGHLIGHT_COUNT):
-    """Loudest clips that actually say something, by views.
+    """Loudest clips that actually say something, ranked by likes.
 
     A clip without a quote has nothing to show on a card, so it is skipped
     even if it out-performed the ones that made the list.
+
+    Likes rather than views: a view is counted when the clip autoplays past
+    someone, a like is someone deciding they agreed. Sorting on the second
+    puts the clips people endorsed at the top rather than the ones the feed
+    happened to push hardest.
+
+    The page shows the handle, so it is carried here. That is a deliberate
+    reversal of the pseudonym default - these accounts are public and the
+    quotes are already attributable through the clip link - and it is why
+    show_handles has to be asked for rather than assumed.
     """
     pool = [c for c in analyzed(clips) if c.get("notable_quote")]
-    pool.sort(key=lambda c: c.get("views") or 0, reverse=True)
+    pool.sort(key=lambda c: (c.get("likes") or 0, c.get("views") or 0),
+              reverse=True)
+
+    # Trim over-represented buckets to a sample. Done after the sort, so what
+    # survives is the most-liked of that group rather than an arbitrary slice.
+    kept, seen = [], Counter()
+    for c in pool:
+        bucket = INTENT_BUCKETS[intent_of(c)]
+        if seen[bucket] >= BUCKET_CAP.get(bucket, len(pool)):
+            continue
+        seen[bucket] += 1
+        kept.append(c)
+    pool = kept
+
     return [{
         "id": c["video_id"],
         "person": pseudonym(c.get("sheet_row")),
+        "handle": c.get("username") or "",
+        "profile_url": profile_url(c.get("username")),
         "quote": widen_quote(c["notable_quote"], c),
         "themes": c.get("themes") or [],
         "intent": intent_of(c),
@@ -323,8 +362,6 @@ def highlights(clips, limit=HIGHLIGHT_COUNT):
         "likes": c.get("likes") or 0,
         "comments": c.get("comments") or 0,
         "uploaded_at": (c.get("uploaded_at") or "")[:10],
-        # The handle is unavoidable inside a TikTok URL. It appears only as a
-        # link target, never as text on the page.
         "url": c.get("video_url", ""),
     } for c in pool[:limit]]
 

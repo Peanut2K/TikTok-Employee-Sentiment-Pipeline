@@ -441,25 +441,45 @@ function Trend() {
 
 /* ---------- 5. voice highlights ---------- */
 
+const PER_PAGE = 12;
+
 function Voices() {
   const [bucket, setBucket] = useState("all");
-  const shown = bucket === "all" ? D.highlights
-                                 : D.highlights.filter((h) => h.bucket === bucket);
+  const [page, setPage] = useState(0);
+  const all = bucket === "all" ? D.highlights
+                               : D.highlights.filter((h) => h.bucket === bucket);
   const count = (k) => D.highlights.filter((h) => h.bucket === k).length;
   // A tab that opens an empty list reads as a broken page, so buckets with no
-  // clip in the top 12 are not offered at all.
+  // clip at all are not offered.
   const tabs = [["all", "ทั้งหมด"],
                 ...Object.entries(INTENT).filter(([k]) => count(k) > 0)
                                          .map(([k, v]) => [k, v.label])];
 
+  const pages = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  // Switching to a smaller tab can leave you on a page that no longer exists.
+  const current = Math.min(page, pages - 1);
+  const shown = all.slice(current * PER_PAGE, (current + 1) * PER_PAGE);
+  const pick = (k) => { setBucket(k); setPage(0); };
+
+  const go = (p) => {
+    setPage(p);
+    // Paging without this leaves you at the bottom of the new page, looking
+    // at its last card with no idea the list changed.
+    const top = document.getElementById("voices");
+    if (top && top.scrollIntoView) top.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <Section id="voices" eyebrow="เสียงจริง" tint="bg-white"
-      title="คำพูดที่คนดูมากที่สุด"
-      lead="เรียงตามยอดชม — ชื่อบัญชีถูกปิดไว้ตามแนวทาง PDPA กดปุ่มเพื่อดูคลิปต้นทาง">
+      title="คำพูดที่คนไลก์มากที่สุด"
+      lead={`เรียงตามยอดไลก์ — คนกดไลก์คือคนที่เห็นด้วย ไม่ใช่แค่คนที่เลื่อนผ่าน ` +
+            `· ยกมา ${D.highlights.length} คลิปเป็นตัวอย่าง ไม่ใช่ทั้งหมด ` +
+            `(กลุ่ม${INTENT.low.label}มีมากที่สุด จึงเลือกมาเฉพาะที่คนไลก์สูงสุด) ` +
+            `· กดชื่อบัญชีเพื่อไปหน้าโปรไฟล์`}>
 
       <div className="flex flex-wrap gap-2 mb-6 no-print">
         {tabs.map(([k, label]) => (
-          <button key={k} onClick={() => setBucket(k)}
+          <button key={k} onClick={() => pick(k)}
             className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
               bucket === k ? "text-white border-transparent"
                            : "bg-white text-neutral-600 border-neutral-300 hover:border-neutral-400"}`}
@@ -472,8 +492,8 @@ function Voices() {
         ))}
       </div>
 
-      {shown.length === 0 && (
-        <p className="text-neutral-500">ไม่มีคลิปในกลุ่มนี้ติดอันดับยอดชมสูงสุด</p>
+      {all.length === 0 && (
+        <p className="text-neutral-500">ไม่มีคลิปในกลุ่มนี้</p>
       )}
 
       {/* items-stretch keeps a short quote from leaving a ragged row. */}
@@ -504,8 +524,20 @@ function Voices() {
 
               <div className="mt-4 pt-4 border-t border-neutral-100 flex items-center justify-between">
                 <div className="text-xs text-neutral-500">
-                  <div className="font-semibold text-neutral-700">{h.person}</div>
-                  {compact(h.views)} ชม · {compact(h.likes)} ไลก์ · {compact(h.comments)} คอมเมนต์
+                  {/* The handle links out; without one the card falls back to
+                      the pseudonym, which has nowhere to go. */}
+                  {h.handle ? (
+                    <a href={h.profile_url} target="_blank" rel="noopener noreferrer"
+                       className="font-semibold hover:underline underline-offset-2"
+                       style={{ color: CP.orange }}>
+                      @{h.handle}
+                    </a>
+                  ) : (
+                    <span className="font-semibold text-neutral-700">{h.person}</span>
+                  )}
+                  <div>
+                    {compact(h.likes)} ไลก์ · {compact(h.views)} ชม · {compact(h.comments)} คอมเมนต์
+                  </div>
                 </div>
                 <a href={h.url} target="_blank" rel="noopener noreferrer"
                    className="text-sm font-semibold px-3 py-1.5 rounded-lg border transition hover:bg-neutral-50 no-print"
@@ -517,6 +549,38 @@ function Voices() {
           );
         })}
       </div>
+
+      {pages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2 flex-wrap no-print">
+          <button onClick={() => go(current - 1)} disabled={current === 0}
+            className="px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-300
+                       disabled:opacity-40 disabled:cursor-default hover:enabled:border-neutral-500">
+            ← ก่อนหน้า
+          </button>
+
+          {Array.from({ length: pages }, (_, i) => (
+            <button key={i} onClick={() => go(i)}
+              className={`w-9 h-9 rounded-lg text-sm font-semibold border transition ${
+                i === current ? "text-white border-transparent"
+                              : "border-neutral-300 text-neutral-600 hover:border-neutral-500"}`}
+              style={i === current ? { background: CP.ink } : {}}>
+              {i + 1}
+            </button>
+          ))}
+
+          <button onClick={() => go(current + 1)} disabled={current === pages - 1}
+            className="px-3 py-2 rounded-lg text-sm font-semibold border border-neutral-300
+                       disabled:opacity-40 disabled:cursor-default hover:enabled:border-neutral-500">
+            ถัดไป →
+          </button>
+        </div>
+      )}
+
+      {all.length > 0 && (
+        <p className="mt-4 text-center text-sm text-neutral-500">
+          แสดง {current * PER_PAGE + 1}–{current * PER_PAGE + shown.length} จาก {all.length} คลิป
+        </p>
+      )}
     </Section>
   );
 }
@@ -735,8 +799,8 @@ function Footer() {
           ตรวจสอบด้วยคนแบบสุ่ม 97 คลิป ตรงกัน 87%
         </p>
         <p>
-          ชื่อบัญชีถูกแทนด้วยรหัสตามแนวทาง PDPA
-          ลิงก์ไปคลิปต้นทางยังคงไว้เพื่อให้ตรวจสอบย้อนกลับได้
+          ทุกคลิปเป็นโพสต์สาธารณะ · แสดงชื่อบัญชีและลิงก์ไปต้นทางเพื่อให้ตรวจสอบย้อนกลับได้
+          ไม่มีการเผยแพร่ข้อมูลส่วนตัวอื่นนอกเหนือจากที่เจ้าของบัญชีโพสต์ไว้เอง
         </p>
         <p className="text-neutral-400">
           คลิปทั้งหมด {O.clips_collected} · วิเคราะห์สำเร็จ {O.clips_analyzed} ·
